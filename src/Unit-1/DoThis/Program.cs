@@ -1,48 +1,47 @@
-﻿using System;
 ﻿using Akka.Actor;
 
-namespace WinTail
+using WinTail;
+using WinTail.Typed;
+
+
+interface ITestActorCommand { }
+class TestActor : Actor<TestActor, ITestActorCommand>
 {
-    #region Program
-    class Program
-    {
-        public static ActorSystem MyActorSystem;
-
-        static void Main(string[] args)
-        {
-            // initialize MyActorSystem
-            // YOU NEED TO FILL IN HERE
-
-            PrintInstructions();
-
-            // time to make your first actors!
-            //YOU NEED TO FILL IN HERE
-            // make consoleWriterActor using these props: Props.Create(() => new ConsoleWriterActor())
-            // make consoleReaderActor using these props: Props.Create(() => new ConsoleReaderActor(consoleWriterActor))
-
-
-            // tell console reader to begin
-            //YOU NEED TO FILL IN HERE
-
-            // blocks the main thread from exiting until the actor system is shut down
-            MyActorSystem.WhenTerminated.Wait();
-        }
-
-        private static void PrintInstructions()
-        {
-            Console.WriteLine("Write whatever you want into the console!");
-            Console.Write("Some lines will appear as");
-            Console.ForegroundColor = ConsoleColor.DarkRed;
-            Console.Write(" red ");
-            Console.ResetColor();
-            Console.Write(" and others will appear as");
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write(" green! ");
-            Console.ResetColor();
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine("Type 'exit' to quit this application at any time.\n");
-        }
-    }
-    #endregion
+    protected override void OnReceive(ITestActorCommand message) { }
 }
+class DependentTestActor : Actor<DependentTestActor, ITestActorCommand>
+{
+    protected override void OnReceive(ITestActorCommand message) { }
+    public DependentTestActor(IActorRef<TestActor> testActor)
+    {
+    }
+}
+
+
+
+var myActorSystem = ActorSystem.Create("MainActorSystem");
+
+TypedProps<TestActor> test1 = TypedProps.Create<TestActor>();
+IActorRef<TestActor> testActor1 = myActorSystem.ActorOf(test1);
+
+TypedProps<TestActor> test2 = TypedProps.Create(() => new TestActor());
+IActorRef<TestActor> testActor2 = myActorSystem.ActorOf(test2);
+
+TypedProps<DependentTestActor> test3 = TypedProps.Create<DependentTestActor>();
+IActorRef<DependentTestActor> testActor3 = myActorSystem.ActorOf(test3);
+
+TypedProps<DependentTestActor> test4 = TypedProps.Create(() => new DependentTestActor(testActor1));
+IActorRef<DependentTestActor> testActor4 = myActorSystem.ActorOf(test4);
+
+var consoleWriterProps = Props.Create(() => new ConsoleWriterActor());
+var consoleWriterActor = myActorSystem.ActorOf(consoleWriterProps, nameof(ConsoleWriterActor));
+
+var validationActorProps = Props.Create(() => new ValidationActor(consoleWriterActor));
+var validationActor = myActorSystem.ActorOf(validationActorProps, nameof(ValidationActor));
+
+var consoleReaderProps = Props.Create(() => new ConsoleReaderActor(validationActor));
+var consoleReaderActor = myActorSystem.ActorOf(consoleReaderProps, nameof(ConsoleReaderActor));
+
+consoleReaderActor.Tell(ConsoleReaderActor.StartCommand);
+
+myActorSystem.WhenTerminated.Wait();
