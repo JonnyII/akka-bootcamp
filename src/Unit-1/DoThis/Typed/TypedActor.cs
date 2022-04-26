@@ -5,13 +5,13 @@ using Akka.Util;
 
 namespace WinTail.Typed;
 
-public interface IActorRef<TActor> : IActorRef
-    where TActor : Actor<TActor>
+public interface IActorRef<TActor, TActorMessageBase>
+    where TActor : Actor<TActor, TActorMessageBase>
 {
 }
 
-public class ActorRefWrapper<TActor> : IActorRef<TActor>
-    where TActor : Actor<TActor>
+public class ActorRefWrapper<TActor, TActorMessageBase> : IActorRef<TActor, TActorMessageBase>
+    where TActor : Actor<TActor, TActorMessageBase>
 {
     private readonly IActorRef _sourceRef;
 
@@ -20,7 +20,7 @@ public class ActorRefWrapper<TActor> : IActorRef<TActor>
         _sourceRef = sourceRef;
     }
 
-    public void Tell(object message, IActorRef sender)
+    public void Tell(TActorMessageBase message, IActorRef sender)
         => _sourceRef.Tell(message, sender);
 
     public bool Equals(IActorRef? other)
@@ -41,15 +41,24 @@ public class ActorRefWrapper<TActor> : IActorRef<TActor>
 public abstract class Actor<TThis> : UntypedActor
     where TThis : Actor<TThis>
 {
+    internal Actor() { }
 }
 public abstract class Actor<TThis, TMessageBase> : Actor<TThis>
     where TThis : Actor<TThis, TMessageBase>
 {
-    protected override void OnReceive(object rawMessage)
+    private static void Receiver(object rawMessage, Action<TMessageBase> handler)
     {
         if (rawMessage is TMessageBase typedMessage)
-            OnReceive(typedMessage);
+            handler(typedMessage);
     }
+
+    protected override void OnReceive(object rawMessage)
+        => Receiver(rawMessage, OnReceive);
+
+    public void Become(Action<TMessageBase> newReceiver)
+        => base.Become(rawMessage => Receiver(rawMessage, newReceiver));
+    public void BecomeStacked(Action<TMessageBase> newReceiver)
+        => base.Become(rawMessage => Receiver(rawMessage, newReceiver));
 
     protected abstract void OnReceive(TMessageBase message);
 }
@@ -79,31 +88,31 @@ public class TypedProps<TActor>
 
 public static class TypedPropsHelper
 {
-    public static IActorRef<TActor> Of<TActor>(this IActorRef actor)
-        where TActor : Actor<TActor>
-        => new ActorRefWrapper<TActor>(actor);
+    public static IActorRef<TActor, TMessage> Of<TActor, TMessage>(this IActorRef actor)
+        where TActor : Actor<TActor, TMessage>
+        => new ActorRefWrapper<TActor, TMessage>(actor);
 
-    public static IActorRef<TActor> ActorOf<TActor>(this ActorSystem actorSystem, TypedProps<TActor> props, string name = null)
-        where TActor : Actor<TActor>
-        => actorSystem.ActorOf((Props)props, name ?? typeof(TActor).Name).Of<TActor>();
+    public static IActorRef<TActor, TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, TypedProps<TActor> props, string name = null)
+        where TActor : Actor<TActor, TMessage>
+        => actorSystem.ActorOf((Props)props, name ?? typeof(TActor).Name).Of<TActor, TMessage>();
 }
 
-interface TestActorCommand { }
-class TestActor : Actor<TestActor, TestActorCommand>
+interface ITestActorCommand { }
+class TestActor : Actor<TestActor, ITestActorCommand>
 {
-    protected override void OnReceive(TestActorCommand message)
+    protected override void OnReceive(ITestActorCommand message)
     {
 
     }
 }
-class DependentTestActor : Actor<TestActor, TestActorCommand>
+class DependentTestActor : Actor<TestActor, ITestActorCommand>
 {
-    protected override void OnReceive(TestActorCommand message)
+    protected override void OnReceive(ITestActorCommand message)
     {
 
     }
 
-    public DependentTestActor(IActorRef<TestActor> testActor)
+    public DependentTestActor(IActorRef<TestActor, ITestActorCommand> testActor)
     {
 
     }
