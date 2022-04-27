@@ -7,7 +7,7 @@ namespace WinTail.Typed;
 public enum ActorReceiverFallbackMode
 {
     /// <summary>
-    /// Throws an <see cref="UnhandledMessageException"/> if the Actor receives a message which is not of it's designated message type of type <see cref="MultiActorMessage"/>.
+    /// Throws an <see cref="UnhandledMessageException"/> if the Actor receives a message which is not of it's designated message type of type <see cref="IMultiActorMessage"/>.
     /// </summary>
     Throw,
     Ignore
@@ -25,12 +25,14 @@ public class UnhandledMessageException : Exception
 /// should only be used when you have an n:m relationship between Parent and Child actor types <br/>
 /// if you want to implement a baseClass, you might want to think about doing this via interface
 /// </summary>
-public record MultiActorMessage : ActorMessage;
+public interface IMultiActorMessage { }
 
 public abstract class Actor<TThis> : UntypedActor
     where TThis : Actor<TThis>
 {
     internal Actor() { }
+    public static string DefaultName
+        => typeof(TThis).Name;
 }
 
 public abstract class Actor<TThis, TMessageBase> : Actor<TThis>
@@ -44,14 +46,14 @@ public abstract class Actor<TThis, TMessageBase> : Actor<TThis>
         _receiverFallbackMode = receiverFallbackMode;
     }
     protected new IActorRef<TMessageBase> Self => base.Self.Receives<TMessageBase>();
-    private void Receiver(object rawMessage, Action<TMessageBase> handler, Action<MultiActorMessage> genericReceiver)
+    private void Receiver(object rawMessage, Action<TMessageBase> handler, Action<IMultiActorMessage> genericReceiver)
     {
         switch (rawMessage)
         {
             case TMessageBase typedMessage:
                 handler(typedMessage);
                 return;
-            case MultiActorMessage genericMessage:
+            case IMultiActorMessage genericMessage:
                 genericReceiver(genericMessage);
                 return;
         }
@@ -69,11 +71,11 @@ public abstract class Actor<TThis, TMessageBase> : Actor<TThis>
 
     protected override void OnReceive(object rawMessage)
         => Receiver(rawMessage, OnReceive, OnReceive);
-    protected virtual void OnReceive(MultiActorMessage multiActorMessage) { }
-    public void Become(Action<TMessageBase> newReceiver, Action<MultiActorMessage> genericReceiver = null)
+    protected virtual void OnReceive(IMultiActorMessage multiActorMessage) { }
+    public void Become(Action<TMessageBase> newReceiver, Action<IMultiActorMessage> genericReceiver = null)
         => base.Become(rawMessage => Receiver(rawMessage, newReceiver, genericReceiver));
 
-    public void BecomeStacked(Action<TMessageBase> newReceiver, Action<MultiActorMessage> genericReceiver = null)
+    public void BecomeStacked(Action<TMessageBase> newReceiver, Action<IMultiActorMessage> genericReceiver = null)
         => base.Become(rawMessage => Receiver(rawMessage, newReceiver, genericReceiver));
 
     protected abstract void OnReceive(TMessageBase message);

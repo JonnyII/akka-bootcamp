@@ -19,16 +19,7 @@ public class ConsoleReaderActor : Actor<ConsoleReaderActor, ConsoleReaderMessage
 
         public record Continue : ConsoleReaderMessage;
     }
-    private readonly IActorRef<FileValidationMessage> _validationActor;
-
-    //todo/check: use enum instead of constant strings later on
-    public const string ExitCommand = "exit";
-    public const string StartCommand = "start";
-
-    public ConsoleReaderActor(IActorRef<FileValidationMessage> validationActor)
-    {
-        _validationActor = validationActor;
-    }
+    private const string ExitCommand = "exit";
 
     protected override void OnReceive(ConsoleReaderMessage message)
     {
@@ -38,7 +29,7 @@ public class ConsoleReaderActor : Actor<ConsoleReaderActor, ConsoleReaderMessage
             GetAndValidateInput();
     }
 
-    private void GetAndValidateInput()
+    private static void GetAndValidateInput()
     {
         var message = Console.ReadLine();
         if (message?.Equals(ExitCommand, StringComparison.OrdinalIgnoreCase) is true)
@@ -46,7 +37,9 @@ public class ConsoleReaderActor : Actor<ConsoleReaderActor, ConsoleReaderMessage
             Context.System.Terminate();
             return;
         }
-        _validationActor.Tell(new FileValidationActor.Messages.Validate(message));
+        Context.ActorSelection<FileValidationMessage>(
+                $"akka://{Constants.ActorSystemName}/user/{FileValidationActor.DefaultName}")
+            .Tell(new FileValidationActor.Messages.Validate(message));
     }
 
     #region Private methods

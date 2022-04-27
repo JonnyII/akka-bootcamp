@@ -5,7 +5,6 @@ using System.IO;
 using WinTail.Typed;
 
 using IConsoleWriterActorRef = WinTail.Typed.IActorRef<WinTail.ConsoleWriterMessage>;
-using ITailCoordinatorActorRef = WinTail.Typed.IActorRef<WinTail.TailCoordinatorMessage>;
 namespace WinTail;
 
 public abstract record FileValidationMessage : ActorMessage { internal FileValidationMessage() { } }
@@ -23,12 +22,10 @@ public class FileValidationActor : Actor<FileValidationActor, FileValidationMess
         public record InputSuccess(string Reason) : ConsoleWriterActor.Messages.Success(Reason);
     }
     private readonly IConsoleWriterActorRef _consoleWriteActor;
-    private readonly ITailCoordinatorActorRef _tailCoordinatorActor;
 
-    public FileValidationActor(IConsoleWriterActorRef consoleWriteActor, ITailCoordinatorActorRef tailCoordinatorActor)
+    public FileValidationActor(IConsoleWriterActorRef consoleWriteActor)
     {
         _consoleWriteActor = consoleWriteActor;
-        _tailCoordinatorActor = tailCoordinatorActor;
     }
 
     protected override void OnReceive(FileValidationMessage message)
@@ -52,7 +49,9 @@ public class FileValidationActor : Actor<FileValidationActor, FileValidationMess
             case Messages.Validate(var content):
 
                 _consoleWriteActor.Tell(new ConsoleWriterExtensions.InputSuccess($"Started processing for {content}"));
-                _tailCoordinatorActor.Tell(new TailCoordinatorActor.Messages.Start(content, _consoleWriteActor));
+                Context.ActorSelection<TailCoordinatorMessage>(
+                    $"akka://{Constants.ActorSystemName}/user/{TailCoordinatorActor.DefaultName}")
+                    .Tell(new TailCoordinatorActor.Messages.Start(content, _consoleWriteActor));
                 return;
         }
     }

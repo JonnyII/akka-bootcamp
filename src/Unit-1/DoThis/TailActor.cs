@@ -7,7 +7,7 @@ using WinTail.Typed;
 namespace WinTail;
 public record TailMessage : ActorMessage { internal TailMessage() { } }
 
-public class TailActor : Actor<TailActor, TailMessage>, IDisposable
+public class TailActor : Actor<TailActor, TailMessage, TailCoordinatorActor, TailCoordinatorMessage>, IDisposable
 {
     public class Messages
     {
@@ -33,7 +33,7 @@ public class TailActor : Actor<TailActor, TailMessage>, IDisposable
         _reporterActor = reporterActor;
         _filePath = filePath;
 
-        _observer = new FileObserver(Self, Path.GetFullPath(_filePath));
+        _observer = new(Self, Path.GetFullPath(_filePath));
         _observer.Start();
 
 

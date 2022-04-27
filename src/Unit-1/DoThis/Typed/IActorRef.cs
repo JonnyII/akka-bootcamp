@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Akka.Actor;
 using Akka.Util;
@@ -13,34 +15,72 @@ public interface IActorRef<in TActorMessageBase>
     void Tell(TActorMessageBase message);
     ISurrogate ToSurrogate(ActorSystem system);
     ActorPath Path { get; }
+    internal IActorRef Source { get; }
+
 }
+
 public class ActorRefWrapper<TActorMessageBase> : IActorRef<TActorMessageBase>
     where TActorMessageBase : ActorMessage
 {
-    private readonly IActorRef _sourceRef;
+    private readonly IActorRef _source;
+    IActorRef IActorRef<TActorMessageBase>.Source => _source;
 
-    internal ActorRefWrapper(IActorRef sourceRef)
+
+    internal ActorRefWrapper(IActorRef source)
     {
-        _sourceRef = sourceRef;
+        _source = source;
     }
 
     public void Tell(TActorMessageBase message)
-        => _sourceRef.Tell(message, ActorCell.GetCurrentSelfOrNoSender());// 2nd parameter extracted from ActorRefImplicitSenderExtensions
+        => _source.Tell(message, ActorCell.GetCurrentSelfOrNoSender());// 2nd parameter extracted from ActorRefImplicitSenderExtensions
 
     public bool Equals(IActorRef? other)
-        => _sourceRef.Equals(other);
+        => _source.Equals(other);
 
     public int CompareTo(IActorRef? other)
-        => _sourceRef.CompareTo(other);
+        => _source.CompareTo(other);
 
     public ISurrogate ToSurrogate(ActorSystem system)
-        => _sourceRef.ToSurrogate(system);
+        => _source.ToSurrogate(system);
 
     public int CompareTo(object? obj)
-        => _sourceRef.CompareTo(obj);
+        => _source.CompareTo(obj);
 
     public ActorPath Path
-        => _sourceRef.Path;
+        => _source.Path;
+}
+
+
+public interface IActorSelection<TMessage>
+    where TMessage : ActorMessage
+{
+    IActorRef<TMessage> Anchor { get; }
+    SelectionPathElement[] Path { get; }
+    string PathString { get; }
+    void Tell(TMessage message, IActorRef<TMessage> sender = null);
+    Task<IActorRef<TMessage>> ResolveOne(TimeSpan timeout, CancellationToken? ct = null);
+}
+
+public class ActorSelectionWrapper<TMessage> : IActorSelection<TMessage>
+    where TMessage : ActorMessage
+{
+    private readonly ActorSelection _actorSelection;
+
+    public ActorSelectionWrapper(ActorSelection actorSelection)
+    {
+        _actorSelection = actorSelection;
+    }
+
+    public IActorRef<TMessage> Anchor => _actorSelection.Anchor.Receives<TMessage>();
+    public SelectionPathElement[] Path => _actorSelection.Path;
+    public string PathString => _actorSelection.PathString;
+    public void Tell(TMessage message, IActorRef<TMessage> sender = null)
+        => _actorSelection.Tell(message, sender?.Source);
+
+    public Task<IActorRef<TMessage>> ResolveOne(TimeSpan timeout, CancellationToken? ct = null)
+        => _actorSelection
+            .ResolveOne(timeout, ct ?? CancellationToken.None)
+            .ContinueWith(actor => actor.Result.Receives<TMessage>(), ct ?? CancellationToken.None);
 }
 
 public static class ActorRefHelper
@@ -61,26 +101,37 @@ public static class ActorRefHelper
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, Expression<Func<TActor>> factory, string name = null)
         where TActor : Actor<TActor, TMessage>
         where TMessage : ActorMessage
-        => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? typeof(TActor).Name).Receives<TMessage>();
+        => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, Expression<Func<TActor>> factory, string name = null)
         where TActor : Actor<TActor, TMessage>
         where TMessage : ActorMessage
-        => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? typeof(TActor).Name).Receives<TMessage>();
+        => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, string name = null)
         where TActor : Actor<TActor, TMessage>, new()
         where TMessage : ActorMessage
-        => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? typeof(TActor).Name).Receives<TMessage>();
+        => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, string name = null)
         where TActor : Actor<TActor, TMessage>, new()
         where TMessage : ActorMessage
-        => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? typeof(TActor).Name).Receives<TMessage>();
+        => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
 
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, TypedProps<TActor> props, string name = null)
         where TActor : Actor<TActor, TMessage>
         where TMessage : ActorMessage
-        => actorSystem.ActorOf((Props)props, name ?? typeof(TActor).Name).Receives<TMessage>();
+        => actorSystem.ActorOf((Props)props, name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, TypedProps<TActor> props, string name = null)
         where TActor : Actor<TActor, TMessage>
         where TMessage : ActorMessage
-        => actorSystem.ActorOf((Props)props, name ?? typeof(TActor).Name).Receives<TMessage>();
+        => actorSystem.ActorOf((Props)props, name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
+
+
+
+    public static IActorSelection<TMessage> Receives<TMessage>(this ActorSelection selection)
+        where TMessage : ActorMessage
+        => new ActorSelectionWrapper<TMessage>(selection);
+
+    public static IActorSelection<TMessage> ActorSelection<TMessage>(
+        this IUntypedActorContext actorSystem, string path)
+    where TMessage : ActorMessage
+        => actorSystem.ActorSelection(path).Receives<TMessage>();
 }
