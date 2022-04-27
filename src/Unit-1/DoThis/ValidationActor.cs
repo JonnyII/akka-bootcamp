@@ -1,40 +1,57 @@
 ﻿
-using Akka.Actor;
+using WinTail.Typed;
 
 namespace WinTail;
-public class ValidationActor : UntypedActor
-{
-    private readonly IActorRef _consoleWriterActor;
 
-    public ValidationActor(IActorRef consoleWriterActor)
+public abstract record ValidationMessage
+{
+    internal ValidationMessage() { }
+}
+public class ValidationActor : Actor<ValidationActor, ValidationMessage>
+{
+    public class Messages
+    {
+        public record Validate(string Text) : ValidationMessage;
+    }
+
+    public class ConsoleWriterExtensionMethods
+    {
+        public record InputError(string Reason) : ConsoleWriterActor.Messages.Error(Reason);
+        public record InputSuccess() : ConsoleWriterActor.Messages.Success("Thank you! Text was valid.");
+
+        public record NullInputError() : InputError("no input received");
+        public record ValidationError(string Reason) : InputError(Reason);
+
+    }
+    private readonly IActorRef<ConsoleWriterActor, ConsoleWriterMessage> _consoleWriterActor;
+
+    public ValidationActor(IActorRef<ConsoleWriterActor, ConsoleWriterMessage> consoleWriterActor)
     {
         _consoleWriterActor = consoleWriterActor;
     }
 
-    protected override void OnReceive(object rawMessage)
+    protected override void OnReceive(ValidationMessage rawMessage)
     {
-        if (rawMessage is not string message)
-            _consoleWriterActor.Tell($"message was not of type string but {rawMessage.GetType().Name} instead.");
-        else
-            HandleStringMessage(message);
+        if (rawMessage is Messages.Validate validationMessage)
+            HandleValidationRequest(validationMessage.Text);
 
-        Sender.Tell(new Messages.ContinueProcessing());
+        Sender.Is<ConsoleReaderActor, ConsoleReaderMessage>().Tell(new ConsoleReaderActor.Messages.Continue());
     }
 
-    private void HandleStringMessage(string message)
+    private void HandleValidationRequest(string message)
     {
         if (string.IsNullOrEmpty(message))
         {
-            _consoleWriterActor.Tell(new Messages.NullInputError("no input received"));
+            _consoleWriterActor.Tell(new ConsoleWriterExtensionMethods.NullInputError());
             return;
         }
 
         if (IsFaulty(message))
         {
-            _consoleWriterActor.Tell(new Messages.ValidationError("Invalid: input had odd number of characters."));
+            _consoleWriterActor.Tell(new ConsoleWriterExtensionMethods.ValidationError("Invalid: input had odd number of characters."));
             return;
         }
-        _consoleWriterActor.Tell(new Messages.InputSuccess("Thank you! Message was valid."));
+        _consoleWriterActor.Tell(new ConsoleWriterExtensionMethods.InputSuccess());
     }
     private static bool IsFaulty(string message)
         => message.Length % 2 != 0;

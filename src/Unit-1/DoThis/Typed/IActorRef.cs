@@ -3,9 +3,12 @@ using Akka.Util;
 
 namespace WinTail.Typed;
 
-public interface IActorRef<TActor, TActorMessageBase>
+public interface IActorRef<TActor, in TActorMessageBase>
     where TActor : Actor<TActor, TActorMessageBase>
 {
+    void Tell(TActorMessageBase message);
+    ISurrogate ToSurrogate(ActorSystem system);
+    ActorPath Path { get; }
 }
 public class ActorRefWrapper<TActor, TActorMessageBase> : IActorRef<TActor, TActorMessageBase>
     where TActor : Actor<TActor, TActorMessageBase>
@@ -17,8 +20,8 @@ public class ActorRefWrapper<TActor, TActorMessageBase> : IActorRef<TActor, TAct
         _sourceRef = sourceRef;
     }
 
-    public void Tell(TActorMessageBase message, IActorRef sender)
-        => _sourceRef.Tell(message, sender);
+    public void Tell(TActorMessageBase message)
+        => _sourceRef.Tell(message, ActorCell.GetCurrentSelfOrNoSender());// 2nd parameter extracted from ActorRefImplicitSenderExtensions
 
     public bool Equals(IActorRef? other)
         => _sourceRef.Equals(other);

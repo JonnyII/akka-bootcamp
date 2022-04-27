@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq.Expressions;
 
 using Akka.Actor;
 
@@ -6,9 +7,9 @@ namespace WinTail.Typed;
 
 public class TypedProps
 {
-    public static TypedProps<TActor> Create<TActor>(Func<TActor> factory, SupervisorStrategy supervisorStrategy = null)
+    public static TypedProps<TActor> Create<TActor>(Expression<Func<TActor>> factory, SupervisorStrategy supervisorStrategy = null)
         where TActor : Actor<TActor>
-        => new(Props.Create(() => factory(), supervisorStrategy));
+        => new(Props.Create(factory, supervisorStrategy));
     public static TypedProps<TActor> Create<TActor>(SupervisorStrategy supervisorStrategy = null)
         where TActor : Actor<TActor>, new()
         => new(Props.Create(() => new TActor(), supervisorStrategy));
@@ -29,11 +30,11 @@ public class TypedProps<TActor>
 }
 public static class TypedPropsHelper
 {
-    public static IActorRef<TActor, TMessage> Of<TActor, TMessage>(this IActorRef actor)
+    public static IActorRef<TActor, TMessage> Is<TActor, TMessage>(this IActorRef actor)
         where TActor : Actor<TActor, TMessage>
         => new ActorRefWrapper<TActor, TMessage>(actor);
 
     public static IActorRef<TActor, TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, TypedProps<TActor> props, string name = null)
         where TActor : Actor<TActor, TMessage>
-        => actorSystem.ActorOf((Props)props, name ?? typeof(TActor).Name).Of<TActor, TMessage>();
+        => actorSystem.ActorOf((Props)props, name ?? typeof(TActor).Name).Is<TActor, TMessage>();
 }

@@ -1,24 +1,34 @@
 ﻿using System;
 
-using Akka.Actor;
+using WinTail.Typed;
 
 namespace WinTail;
 
+
+public abstract record ConsoleWriterMessage
+{
+    internal ConsoleWriterMessage() { }
+}
 /// <summary>
 /// Actor responsible for serializing message writes to the console.
 /// (write one message at a time, champ :)
 /// </summary>
-class ConsoleWriterActor : UntypedActor
+public class ConsoleWriterActor : Actor<ConsoleWriterActor, ConsoleWriterMessage>
 {
-    protected override void OnReceive(object message)
+    public class Messages
+    {
+        public record Error(string Reason) : ConsoleWriterMessage;
+        public record Success(string Reason) : ConsoleWriterMessage;
+    }
+    protected override void OnReceive(ConsoleWriterMessage message)
     {
         switch (message)
         {
-            case Messages.InputError inputErrorMessage:
+            case Messages.Error inputErrorMessage:
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(inputErrorMessage.Reason);
                 break;
-            case Messages.InputSuccess inputSuccessMessage:
+            case Messages.Success inputSuccessMessage:
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine(inputSuccessMessage.Reason);
                 break;

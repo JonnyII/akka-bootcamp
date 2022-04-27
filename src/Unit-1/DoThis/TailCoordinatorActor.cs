@@ -1,17 +1,24 @@
 ﻿
 using Akka.Actor;
 
+using WinTail.Typed;
+
 namespace WinTail;
 
-public class TailCoordinatorActor : UntypedActor
+public record TailCoordinatorMessage
 {
-    #region message types
-    public record StartTail(string FilePath, IActorRef ReporterActor);
-    public record StopTail(string FilePath);
-    #endregion
-    protected override void OnReceive(object message)
+    internal TailCoordinatorMessage() { }
+}
+public class TailCoordinatorActor : Actor<TailCoordinatorActor, TailCoordinatorMessage>
+{
+    public class Messages
     {
-        if (message is StartTail startTailRequest)
+        public record StartTail(string FilePath, IActorRef ReporterActor) : TailCoordinatorMessage;
+        public record StopTail(string FilePath) : TailCoordinatorMessage;
+    }
+    protected override void OnReceive(TailCoordinatorMessage message)
+    {
+        if (message is Messages.StartTail startTailRequest)
         {
         }
     }

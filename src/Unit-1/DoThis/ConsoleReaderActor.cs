@@ -2,29 +2,42 @@ using System;
 
 using Akka.Actor;
 
+using WinTail.Typed;
+
 namespace WinTail;
+
+public abstract record ConsoleReaderMessage
+{
+    internal ConsoleReaderMessage() { }
+}
 /// <summary>
 /// Actor responsible for reading FROM the console. 
 /// Also responsible for calling <see cref="ActorSystem.Terminate"/>.
 /// </summary>
-class ConsoleReaderActor : UntypedActor
+class ConsoleReaderActor : Actor<ConsoleReaderActor, ConsoleReaderMessage>
 {
-    private readonly IActorRef _validationActor;
+    public class Messages
+    {
+        public record Start : ConsoleReaderMessage;
+
+        public record Continue : ConsoleReaderMessage;
+    }
+    private readonly IActorRef<ValidationActor, ValidationMessage> _validationActor;
 
     //todo/check: use enum instead of constant strings later on
     public const string ExitCommand = "exit";
     public const string StartCommand = "start";
 
-    public ConsoleReaderActor(IActorRef validationActor)
+    public ConsoleReaderActor(IActorRef<ValidationActor, ValidationMessage> validationActor)
     {
         _validationActor = validationActor;
     }
 
-    protected override void OnReceive(object message)
+    protected override void OnReceive(ConsoleReaderMessage message)
     {
-        if (message is StartCommand)
+        if (message is Messages.Start)
             DoPrintInstructions();
-        if (message is StartCommand or Messages.ContinueProcessing)
+        if (message is Messages.Start or Messages.Continue)
             GetAndValidateInput();
     }
 
@@ -36,7 +49,7 @@ class ConsoleReaderActor : UntypedActor
             Context.System.Terminate();
             return;
         }
-        _validationActor.Tell(message);
+        _validationActor.Tell(new ValidationActor.Messages.Validate(message));
     }
 
     #region Private methods
