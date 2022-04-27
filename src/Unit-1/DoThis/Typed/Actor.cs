@@ -46,14 +46,14 @@ public abstract class Actor<TThis, TMessageBase> : Actor<TThis>
         _receiverFallbackMode = receiverFallbackMode;
     }
     protected new IActorRef<TMessageBase> Self => base.Self.Receives<TMessageBase>();
-    private void Receiver(object rawMessage, Action<TMessageBase> handler, Action<IMultiActorMessage> genericReceiver)
+    private void Receiver(object rawMessage, Action<TMessageBase> handler, Action<IMultiActorMessage>? genericReceiver)
     {
         switch (rawMessage)
         {
             case TMessageBase typedMessage:
                 handler(typedMessage);
                 return;
-            case IMultiActorMessage genericMessage:
+            case IMultiActorMessage genericMessage when genericReceiver is not null:
                 genericReceiver(genericMessage);
                 return;
         }
@@ -72,10 +72,10 @@ public abstract class Actor<TThis, TMessageBase> : Actor<TThis>
     protected override void OnReceive(object rawMessage)
         => Receiver(rawMessage, OnReceive, OnReceive);
     protected virtual void OnReceive(IMultiActorMessage multiActorMessage) { }
-    public void Become(Action<TMessageBase> newReceiver, Action<IMultiActorMessage> genericReceiver = null)
+    public void Become(Action<TMessageBase> newReceiver, Action<IMultiActorMessage>? genericReceiver = null)
         => base.Become(rawMessage => Receiver(rawMessage, newReceiver, genericReceiver));
 
-    public void BecomeStacked(Action<TMessageBase> newReceiver, Action<IMultiActorMessage> genericReceiver = null)
+    public void BecomeStacked(Action<TMessageBase> newReceiver, Action<IMultiActorMessage>? genericReceiver = null)
         => base.Become(rawMessage => Receiver(rawMessage, newReceiver, genericReceiver));
 
     protected abstract void OnReceive(TMessageBase message);

@@ -9,10 +9,16 @@ using Akka.Util;
 namespace WinTail.Typed;
 
 public abstract record ActorMessage;
-public interface IActorRef<in TActorMessageBase>
+
+public interface ICanTell<TMessage>
+    where TMessage : ActorMessage
+{
+    void Tell(TMessage message, IActorRef<TMessage>? sender = null);
+}
+
+public interface IActorRef<TActorMessageBase> : ICanTell<TActorMessageBase>
     where TActorMessageBase : ActorMessage
 {
-    void Tell(TActorMessageBase message);
     ISurrogate ToSurrogate(ActorSystem system);
     ActorPath Path { get; }
     internal IActorRef Source { get; }
@@ -31,8 +37,8 @@ public class ActorRefWrapper<TActorMessageBase> : IActorRef<TActorMessageBase>
         _source = source;
     }
 
-    public void Tell(TActorMessageBase message)
-        => _source.Tell(message, ActorCell.GetCurrentSelfOrNoSender());// 2nd parameter extracted from ActorRefImplicitSenderExtensions
+    public void Tell(TActorMessageBase message, IActorRef<TActorMessageBase>? sender = null)
+        => _source.Tell(message, sender?.Source ?? ActorCell.GetCurrentSelfOrNoSender());// 2nd parameter extracted from ActorRefImplicitSenderExtensions
 
     public bool Equals(IActorRef? other)
         => _source.Equals(other);
@@ -51,13 +57,12 @@ public class ActorRefWrapper<TActorMessageBase> : IActorRef<TActorMessageBase>
 }
 
 
-public interface IActorSelection<TMessage>
+public interface IActorSelection<TMessage> : ICanTell<TMessage>
     where TMessage : ActorMessage
 {
     IActorRef<TMessage> Anchor { get; }
     SelectionPathElement[] Path { get; }
     string PathString { get; }
-    void Tell(TMessage message, IActorRef<TMessage> sender = null);
     Task<IActorRef<TMessage>> ResolveOne(TimeSpan timeout, CancellationToken? ct = null);
 }
 
@@ -74,7 +79,7 @@ public class ActorSelectionWrapper<TMessage> : IActorSelection<TMessage>
     public IActorRef<TMessage> Anchor => _actorSelection.Anchor.Receives<TMessage>();
     public SelectionPathElement[] Path => _actorSelection.Path;
     public string PathString => _actorSelection.PathString;
-    public void Tell(TMessage message, IActorRef<TMessage> sender = null)
+    public void Tell(TMessage message, IActorRef<TMessage>? sender = null)
         => _actorSelection.Tell(message, sender?.Source);
 
     public Task<IActorRef<TMessage>> ResolveOne(TimeSpan timeout, CancellationToken? ct = null)
@@ -90,7 +95,6 @@ public static class ActorRefHelper
     /// This does not provide runtime TypeChecks!
     /// if the actor does not have the specified type, no exception will be thrown and the messages will be send regardless, without Error!
     /// </summary>
-    /// <typeparam name="TActor"></typeparam>
     /// <typeparam name="TMessage"></typeparam>
     /// <param name="actor"></param>
     /// <returns></returns>
@@ -98,33 +102,33 @@ public static class ActorRefHelper
     where TMessage : ActorMessage
         => new ActorRefWrapper<TMessage>(actor);
 
-    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, Expression<Func<TActor>> factory, string name = null)
+    #region ActorOf
+    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, Expression<Func<TActor>> factory, string? name = null)
         where TActor : Actor<TActor, TMessage>
         where TMessage : ActorMessage
         => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
-    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, Expression<Func<TActor>> factory, string name = null)
+    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, Expression<Func<TActor>> factory, string? name = null)
         where TActor : Actor<TActor, TMessage>
         where TMessage : ActorMessage
         => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
-    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, string name = null)
+    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, string? name = null)
         where TActor : Actor<TActor, TMessage>, new()
         where TMessage : ActorMessage
         => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
-    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, string name = null)
+    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, string? name = null)
         where TActor : Actor<TActor, TMessage>, new()
         where TMessage : ActorMessage
         => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
 
-    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, TypedProps<TActor> props, string name = null)
+    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, TypedProps<TActor> props, string? name = null)
         where TActor : Actor<TActor, TMessage>
         where TMessage : ActorMessage
         => actorSystem.ActorOf((Props)props, name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
-    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, TypedProps<TActor> props, string name = null)
+    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, TypedProps<TActor> props, string? name = null)
         where TActor : Actor<TActor, TMessage>
         where TMessage : ActorMessage
         => actorSystem.ActorOf((Props)props, name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
-
-
+    #endregion
 
     public static IActorSelection<TMessage> Receives<TMessage>(this ActorSelection selection)
         where TMessage : ActorMessage

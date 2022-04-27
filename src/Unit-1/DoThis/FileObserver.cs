@@ -8,7 +8,7 @@ public class FileObserver : IDisposable
 {
     private readonly IActorRef<TailMessage> _tailActor;
     private readonly string _absoluteFilePath;
-    private FileSystemWatcher _watcher;
+    private FileSystemWatcher? _watcher;
     private readonly string _fileDir;
     private readonly string _fileNameOnly;
 
@@ -16,7 +16,7 @@ public class FileObserver : IDisposable
     {
         _tailActor = tailActor;
         _absoluteFilePath = absoluteFilePath;
-        _fileDir = Path.GetDirectoryName(absoluteFilePath);
+        _fileDir = Path.GetDirectoryName(absoluteFilePath)!;
         _fileNameOnly = Path.GetFileName(absoluteFilePath);
     }
 
@@ -49,7 +49,7 @@ public class FileObserver : IDisposable
     /// </summary>
     public void Dispose()
     {
-        _watcher.Dispose();
+        _watcher?.Dispose();
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ public class FileObserver : IDisposable
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    void OnFileError(object sender, ErrorEventArgs e)
+    private void OnFileError(object sender, ErrorEventArgs e)
     {
         _tailActor.Tell(new TailActor.Messages.FileError(_fileNameOnly,
             e.GetException().Message));
@@ -68,9 +68,9 @@ public class FileObserver : IDisposable
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    void OnFileChanged(object sender, FileSystemEventArgs e)
+    private void OnFileChanged(object sender, FileSystemEventArgs e)
     {
-        if (e.ChangeType == WatcherChangeTypes.Changed)
+        if (e.ChangeType == WatcherChangeTypes.Changed && e.Name is not null)
         {
             // here we use a special ActorRefs.NoSender
             // since this event can happen many times,

@@ -31,8 +31,8 @@ public class ConsoleReaderActor : Actor<ConsoleReaderActor, ConsoleReaderMessage
 
     private static void GetAndValidateInput()
     {
-        var message = Console.ReadLine();
-        if (message?.Equals(ExitCommand, StringComparison.OrdinalIgnoreCase) is true)
+        var message = Console.ReadLine() ?? string.Empty;
+        if (message.Equals(ExitCommand, StringComparison.OrdinalIgnoreCase) is true)
         {
             Context.System.Terminate();
             return;

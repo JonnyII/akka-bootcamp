@@ -7,10 +7,10 @@ namespace WinTail.Typed;
 
 public class TypedProps
 {
-    public static TypedProps<TActor> Create<TActor>(Expression<Func<TActor>> factory, SupervisorStrategy supervisorStrategy = null)
+    public static TypedProps<TActor> Create<TActor>(Expression<Func<TActor>> factory, SupervisorStrategy? supervisorStrategy = null)
         where TActor : Actor<TActor>
         => new(Props.Create(factory, supervisorStrategy));
-    public static TypedProps<TActor> Create<TActor>(SupervisorStrategy supervisorStrategy = null)
+    public static TypedProps<TActor> Create<TActor>(SupervisorStrategy? supervisorStrategy = null)
         where TActor : Actor<TActor>, new()
         => new(Props.Create(() => new TActor(), supervisorStrategy));
 }
