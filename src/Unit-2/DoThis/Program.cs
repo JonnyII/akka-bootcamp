@@ -1,29 +1,23 @@
-﻿using System;
-using System.Windows.Forms;
-using Akka.Actor;
-using Akka.Configuration;
+﻿using Akka.Actor;
 
-namespace ChartApp
+namespace ChartApp;
+internal static class Program
 {
-    static class Program
-    {
-        /// <summary>
-        /// ActorSystem we'll be using to publish data to charts
-        /// and subscribe from performance counters
-        /// </summary>
-        public static ActorSystem ChartActors;
+    /// <summary>
+    /// ActorSystem we'll be using to publish data to charts
+    /// and subscribe from performance counters
+    /// </summary>
+    public static ActorSystem ChartActors = ActorSystem.Create("ChartActors");
 
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
-        [STAThread]
-        static void Main()
-        {
-            ChartActors = ActorSystem.Create("ChartActors");
-            Application.SetHighDpiMode(HighDpiMode.SystemAware);
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Main());
-        }
+    /// <summary>
+    /// The main entry point for the application.
+    /// </summary>
+    [STAThread]
+    static void Main()
+    {
+        Application.SetHighDpiMode(HighDpiMode.SystemAware);
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+        Application.Run(new Main());
     }
 }
