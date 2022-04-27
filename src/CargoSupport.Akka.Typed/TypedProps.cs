@@ -1,9 +1,7 @@
-﻿using System;
-using System.Linq.Expressions;
-
+﻿using System.Linq.Expressions;
 using Akka.Actor;
 
-namespace WinTail.Typed;
+namespace CargoSupport.Akka.Typed;
 
 public class TypedProps
 {

@@ -1,8 +1,7 @@
 using System;
 
 using Akka.Actor;
-
-using WinTail.Typed;
+using CargoSupport.Akka.Typed;
 
 namespace WinTail;
 

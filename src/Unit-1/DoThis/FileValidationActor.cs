@@ -1,10 +1,8 @@
 ﻿
 using System;
 using System.IO;
-
-using WinTail.Typed;
-
-using IConsoleWriterActorRef = WinTail.Typed.IActorRef<WinTail.ConsoleWriterMessage>;
+using CargoSupport.Akka.Typed;
+using IConsoleWriterActorRef = CargoSupport.Akka.Typed.IActorRef<WinTail.ConsoleWriterMessage>;
 namespace WinTail;
 
 public abstract record FileValidationMessage : ActorMessage { internal FileValidationMessage() { } }

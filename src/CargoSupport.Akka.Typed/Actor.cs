@@ -1,8 +1,6 @@
-﻿using System;
+﻿using Akka.Actor;
 
-using Akka.Actor;
-
-namespace WinTail.Typed;
+namespace CargoSupport.Akka.Typed;
 
 public enum ActorReceiverFallbackMode
 {

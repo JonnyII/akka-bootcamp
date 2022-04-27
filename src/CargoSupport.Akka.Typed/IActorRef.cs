@@ -1,12 +1,8 @@
-﻿using System;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-
+﻿using System.Linq.Expressions;
 using Akka.Actor;
 using Akka.Util;
 
-namespace WinTail.Typed;
+namespace CargoSupport.Akka.Typed;
 
 public abstract record ActorMessage;
 

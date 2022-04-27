@@ -1,6 +1,5 @@
 ﻿using System;
-
-using WinTail.Typed;
+using CargoSupport.Akka.Typed;
 
 namespace WinTail;
 

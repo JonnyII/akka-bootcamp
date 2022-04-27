@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-
-using WinTail.Typed;
+using CargoSupport.Akka.Typed;
 
 namespace WinTail;
 public record TailMessage : ActorMessage { internal TailMessage() { } }

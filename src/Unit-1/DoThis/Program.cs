@@ -1,7 +1,7 @@
 ﻿using Akka.Actor;
-
+using CargoSupport.Akka.Typed;
 using WinTail;
-using WinTail.Typed;
+
 var myActorSystem = ActorSystem.Create(Constants.ActorSystemName);
 
 var consoleWriterActor = myActorSystem.ActorOf<ConsoleWriterActor, ConsoleWriterMessage>();
