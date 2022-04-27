@@ -5,10 +5,7 @@ using WinTail.Typed;
 namespace WinTail;
 
 
-public abstract record ConsoleWriterMessage
-{
-    internal ConsoleWriterMessage() { }
-}
+public abstract record ConsoleWriterMessage : ActorMessage { internal ConsoleWriterMessage() { } }
 /// <summary>
 /// Actor responsible for serializing message writes to the console.
 /// (write one message at a time, champ :)

@@ -6,15 +6,12 @@ using WinTail.Typed;
 
 namespace WinTail;
 
-public abstract record ConsoleReaderMessage
-{
-    internal ConsoleReaderMessage() { }
-}
+public abstract record ConsoleReaderMessage : ActorMessage { internal ConsoleReaderMessage() { } }
 /// <summary>
 /// Actor responsible for reading FROM the console. 
 /// Also responsible for calling <see cref="ActorSystem.Terminate"/>.
 /// </summary>
-class ConsoleReaderActor : Actor<ConsoleReaderActor, ConsoleReaderMessage>
+public class ConsoleReaderActor : Actor<ConsoleReaderActor, ConsoleReaderMessage>
 {
     public class Messages
     {
@@ -22,13 +19,13 @@ class ConsoleReaderActor : Actor<ConsoleReaderActor, ConsoleReaderMessage>
 
         public record Continue : ConsoleReaderMessage;
     }
-    private readonly IActorRef<ValidationActor, ValidationMessage> _validationActor;
+    private readonly IActorRef<FileValidationMessage> _validationActor;
 
     //todo/check: use enum instead of constant strings later on
     public const string ExitCommand = "exit";
     public const string StartCommand = "start";
 
-    public ConsoleReaderActor(IActorRef<ValidationActor, ValidationMessage> validationActor)
+    public ConsoleReaderActor(IActorRef<FileValidationMessage> validationActor)
     {
         _validationActor = validationActor;
     }
@@ -49,7 +46,7 @@ class ConsoleReaderActor : Actor<ConsoleReaderActor, ConsoleReaderMessage>
             Context.System.Terminate();
             return;
         }
-        _validationActor.Tell(new ValidationActor.Messages.Validate(message));
+        _validationActor.Tell(new FileValidationActor.Messages.Validate(message));
     }
 
     #region Private methods
@@ -57,9 +54,7 @@ class ConsoleReaderActor : Actor<ConsoleReaderActor, ConsoleReaderMessage>
     private static void DoPrintInstructions()
     {
         Console.WriteLine(string.Join(Environment.NewLine,
-            "Write whatever you want into the console!",
-            "Some entries will pass validation, and some won't...", "",
-            "Type 'exit' to quit this application at any time."
+            "please provide the URI of a log file on disk", ""
             ));
     }
 
