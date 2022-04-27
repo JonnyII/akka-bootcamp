@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-using WinTail.Typed;
+using CargoSupport.Akka.Typed;
 
 namespace WinTail;
 public class FileObserver : IDisposable
