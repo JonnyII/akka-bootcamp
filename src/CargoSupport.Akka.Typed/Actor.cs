@@ -30,7 +30,7 @@ public abstract class Actor<TThis> : UntypedActor
 {
     internal Actor() { }
     public static string DefaultName
-        => typeof(TThis).Name;
+        => typeof(TThis).Name.Replace("Actor", "");
 }
 
 public abstract class Actor<TThis, TMessageBase> : Actor<TThis>

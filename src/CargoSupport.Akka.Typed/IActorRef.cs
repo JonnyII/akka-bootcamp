@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+
 using Akka.Actor;
 using Akka.Util;
 
@@ -19,6 +20,7 @@ public interface IActorRef<TActorMessageBase> : ICanTell<TActorMessageBase>
     ActorPath Path { get; }
     internal IActorRef Source { get; }
 
+    void SysTell(object message, IActorRef<TActorMessageBase>? sender = null);
 }
 
 public class ActorRefWrapper<TActorMessageBase> : IActorRef<TActorMessageBase>
@@ -36,6 +38,18 @@ public class ActorRefWrapper<TActorMessageBase> : IActorRef<TActorMessageBase>
     public void Tell(TActorMessageBase message, IActorRef<TActorMessageBase>? sender = null)
         => _source.Tell(message, sender?.Source ?? ActorCell.GetCurrentSelfOrNoSender());// 2nd parameter extracted from ActorRefImplicitSenderExtensions
 
+    public void SysTell(object message, IActorRef<TActorMessageBase>? sender = null)
+    {
+        if (message.GetType().Namespace?.StartsWith("akka", StringComparison.OrdinalIgnoreCase) is not true)
+            throw new InvalidMessageException(string.Join(Environment.NewLine,
+                $"you tried to tell a non-system message (identified by being in the akka namespace) via {nameof(SysTell)}.",
+                $"  Message: {message}",
+                $"  Namespace: {message.GetType().Namespace}",
+                $"  From: {sender ?? ActorCell.GetCurrentSelfOrNoSender().Receives<TActorMessageBase>()}",
+                $"  To: {this}"));
+
+        _source.Tell(message);
+    }
     public bool Equals(IActorRef? other)
         => _source.Equals(other);
 
