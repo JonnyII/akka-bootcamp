@@ -4,21 +4,41 @@ using Akka.Actor;
 
 namespace CargoSupport.Akka.Typed;
 
-public abstract class ReceiveActor<TThis, TMessageBase> : ReceiveActor
+public abstract class ReceiveActor<TThis, TMessageBase> : ReceiveActor, IActor<TMessageBase>
     where TMessageBase : ActorMessage
     where TThis : ReceiveActor<TThis, TMessageBase>
 {
     private readonly ActorReceiverFallbackMode _receiverFallbackMode;
 
     #region Receive
-
+    /// <summary>
+    /// <inheritdoc cref="ReceiveActor.Receive{T}(Action{T},Predicate{T})"/>
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="filter"></param>
+    /// <param name="action"></param>
     protected new void Receive<T>(Predicate<T> filter, Action<T> action)
         where T : TMessageBase
         => base.Receive(filter, action);
 
+    /// <summary>
+    /// <inheritdoc cref="ReceiveActor.Receive{T}(Func{T,bool})"/>
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="action"></param>
     protected new void Receive<T>(Func<T, bool> action)
         where T : TMessageBase
         => base.Receive(action);
+
+    /// <summary>
+    /// <inheritdoc cref="ReceiveActor.Receive{T}(Func{T,bool})"/>
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="action"></param>
+    protected void Receive<T>(Action<T> action)
+        where T : TMessageBase
+        => base.Receive(action);
+
 
     #region obsolete overrides
     //overriding base members 
@@ -43,7 +63,7 @@ public abstract class ReceiveActor<TThis, TMessageBase> : ReceiveActor
     [EditorBrowsable(EditorBrowsableState.Never)]
     protected new void Receive<T>(Action<T> action, Predicate<T> filter)
         where T : TMessageBase
-        => base.Receive(filter, action);
+        => base.Receive(action, filter);
 
     [Obsolete($"use {nameof(Receive)} instead")]
     protected new void ReceiveAny(Action<object> action)

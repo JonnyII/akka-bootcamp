@@ -11,6 +11,12 @@ public enum ActorReceiverFallbackMode
     Ignore
 }
 
+public interface IActor<TMessageBase>
+    where TMessageBase : ActorMessage
+{
+
+}
+
 public abstract class Actor<TThis> : UntypedActor
     where TThis : Actor<TThis>
 {
@@ -20,7 +26,7 @@ public abstract class Actor<TThis> : UntypedActor
         => ActorHelper.GetDefaultName<TThis>();
 }
 
-public abstract class Actor<TThis, TMessageBase> : Actor<TThis>
+public abstract class Actor<TThis, TMessageBase> : Actor<TThis>, IActor<TMessageBase>
     where TMessageBase : ActorMessage
     where TThis : Actor<TThis, TMessageBase>
 {

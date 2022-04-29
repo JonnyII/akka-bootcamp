@@ -105,30 +105,30 @@ public static class ActorRefHelper
 
     #region ActorOf
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, Expression<Func<TActor>> factory, string? name = null)
-        where TActor : Actor<TActor, TMessage>
+        where TActor : ActorBase, IActor<TMessage>
         where TMessage : ActorMessage
-        => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
+        => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, Expression<Func<TActor>> factory, string? name = null)
-        where TActor : Actor<TActor, TMessage>
+        where TActor : ActorBase, IActor<TMessage>
         where TMessage : ActorMessage
-        => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
+        => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, string? name = null)
-        where TActor : Actor<TActor, TMessage>, new()
+        where TActor : ActorBase, IActor<TMessage>, new()
         where TMessage : ActorMessage
-        => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
+        => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, string? name = null)
-        where TActor : Actor<TActor, TMessage>, new()
+        where TActor : ActorBase, IActor<TMessage>, new()
         where TMessage : ActorMessage
-        => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
+        => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
 
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, TypedProps<TActor> props, string? name = null)
-        where TActor : Actor<TActor, TMessage>
+        where TActor : ActorBase, IActor<TMessage>
         where TMessage : ActorMessage
-        => actorSystem.ActorOf((Props)props, name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
+        => actorSystem.ActorOf((Props)props, name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, TypedProps<TActor> props, string? name = null)
-        where TActor : Actor<TActor, TMessage>
+        where TActor : ActorBase, IActor<TMessage>
         where TMessage : ActorMessage
-        => actorSystem.ActorOf((Props)props, name ?? Actor<TActor>.DefaultName).Receives<TMessage>();
+        => actorSystem.ActorOf((Props)props, name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
     #endregion
 
     public static IActorSelection<TMessage> Receives<TMessage>(this ActorSelection selection)
