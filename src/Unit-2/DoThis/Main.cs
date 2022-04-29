@@ -1,6 +1,4 @@
-﻿
-using Akka.Actor;
-using Akka.Util.Internal;
+﻿using Akka.Util.Internal;
 
 using CargoSupport.Akka.Typed;
 
@@ -8,6 +6,7 @@ using ChartApp.Actors;
 
 namespace ChartApp
 {
+
     public partial class Main : Form
     {
         private IActorRef<ChartingMessage>? _chartActor;
@@ -34,7 +33,7 @@ namespace ChartApp
         private void Main_FormClosing(object sender, FormClosingEventArgs e)
         {
             //shut down the charting actor
-            _chartActor!.SysTell(PoisonPill.Instance);
+            _chartActor!.Tell(SystemMessages.PoisonPill);
 
             //shut down the ActorSystem
             Program.ChartActors.Terminate();
