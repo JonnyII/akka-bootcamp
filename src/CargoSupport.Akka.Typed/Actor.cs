@@ -17,18 +17,8 @@ public interface IActor<TMessageBase>
 
 }
 
-public abstract class Actor<TThis> : UntypedActor
-    where TThis : Actor<TThis>
-{
-    internal Actor() { }
-
-    public static string DefaultName
-        => ActorHelper.GetDefaultName<TThis>();
-}
-
-public abstract class Actor<TThis, TMessageBase> : Actor<TThis>, IActor<TMessageBase>
+public abstract class Actor<TMessageBase> : UntypedActor, IActor<TMessageBase>
     where TMessageBase : ActorMessage
-    where TThis : Actor<TThis, TMessageBase>
 {
     private readonly ActorReceiverFallbackMode _receiverFallbackMode;
 
@@ -71,11 +61,9 @@ public abstract class Actor<TThis, TMessageBase> : Actor<TThis>, IActor<TMessage
 
     protected abstract void OnReceive(TMessageBase message);
 }
-public abstract class Actor<TThis, TMessageBase, TParent, TParentMessageBase>
-    : Actor<TThis, TMessageBase>
-    where TThis : Actor<TThis, TMessageBase>
+public abstract class Actor<TMessageBase, TParentMessageBase>
+    : Actor<TMessageBase>
     where TMessageBase : ActorMessage
-    where TParent : Actor<TParent, TParentMessageBase>
     where TParentMessageBase : ActorMessage
 {
     // impossible, since the child can send messages too
@@ -85,3 +73,4 @@ public abstract class Actor<TThis, TMessageBase, TParent, TParentMessageBase>
     {
     }
 }
+

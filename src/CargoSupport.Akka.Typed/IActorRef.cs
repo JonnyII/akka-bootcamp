@@ -11,6 +11,7 @@ public interface ICanTell<TMessage>
     where TMessage : ActorMessage
 {
     void Tell(TMessage message, IActorRef<TMessage>? sender = null);
+    internal ICanTell Native { get; }
 }
 
 public interface IActorRef<TActorMessageBase> : ICanTell<TActorMessageBase>
@@ -18,7 +19,8 @@ public interface IActorRef<TActorMessageBase> : ICanTell<TActorMessageBase>
 {
     ISurrogate ToSurrogate(ActorSystem system);
     ActorPath Path { get; }
-    internal IActorRef Source { get; }
+    ICanTell ICanTell<TActorMessageBase>.Native => Native;
+    internal new IActorRef Native { get; }
 
     void Tell(SystemMessages.SystemMessage message, IActorRef<TActorMessageBase>? sender = null);
 }
@@ -27,7 +29,7 @@ public class ActorRefWrapper<TActorMessageBase> : IActorRef<TActorMessageBase>
     where TActorMessageBase : ActorMessage
 {
     private readonly IActorRef _source;
-    IActorRef IActorRef<TActorMessageBase>.Source => _source;
+    IActorRef IActorRef<TActorMessageBase>.Native => _source;
 
 
     internal ActorRefWrapper(IActorRef source)
@@ -36,7 +38,8 @@ public class ActorRefWrapper<TActorMessageBase> : IActorRef<TActorMessageBase>
     }
 
     public void Tell(TActorMessageBase message, IActorRef<TActorMessageBase>? sender = null)
-        => _source.Tell(message, sender?.Source ?? ActorCell.GetCurrentSelfOrNoSender());// 2nd parameter extracted from ActorRefImplicitSenderExtensions
+        => _source.Tell(message, sender?.Native ?? ActorCell.GetCurrentSelfOrNoSender());// 2nd parameter extracted from ActorRefImplicitSenderExtensions
+
 
     public void Tell(SystemMessages.SystemMessage message, IActorRef<TActorMessageBase>? sender = null)
         => _source.Tell(message.GetNative());
@@ -81,7 +84,9 @@ public class ActorSelectionWrapper<TMessage> : IActorSelection<TMessage>
     public SelectionPathElement[] Path => _actorSelection.Path;
     public string PathString => _actorSelection.PathString;
     public void Tell(TMessage message, IActorRef<TMessage>? sender = null)
-        => _actorSelection.Tell(message, sender?.Source);
+        => _actorSelection.Tell(message, sender?.Native);
+
+    ICanTell ICanTell<TMessage>.Native => _actorSelection;
 
     public Task<IActorRef<TMessage>> ResolveOne(TimeSpan timeout, CancellationToken? ct = null)
         => _actorSelection

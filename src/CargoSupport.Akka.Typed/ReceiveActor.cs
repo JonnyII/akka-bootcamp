@@ -4,9 +4,8 @@ using Akka.Actor;
 
 namespace CargoSupport.Akka.Typed;
 
-public abstract class ReceiveActor<TThis, TMessageBase> : ReceiveActor, IActor<TMessageBase>
+public abstract class ReceiveActor<TMessageBase> : ReceiveActor, IActor<TMessageBase>
     where TMessageBase : ActorMessage
-    where TThis : ReceiveActor<TThis, TMessageBase>
 {
     private readonly ActorReceiverFallbackMode _receiverFallbackMode;
 
