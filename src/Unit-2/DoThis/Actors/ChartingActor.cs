@@ -1,38 +1,49 @@
-﻿
-using System.Windows.Forms.DataVisualization.Charting;
+﻿using Akka.Actor;
 
 using CargoSupport.Akka.Typed;
 
+using DevExpress.XtraCharts;
+
 namespace ChartApp.Actors;
 public record ChartingMessage : ActorMessage { }
-public class ChartingActor : Actor<ChartingActor, ChartingMessage>
+public class ChartingActor : ReceiveActor<ChartingActor, ChartingMessage>
 {
     public class Messages
     {
         public record InitializeChart(Dictionary<string, Series>? InitialSeries) : ChartingMessage;
+
+        public record AddSeries : ChartingMessage
+        {
+            public AddSeries(Series series)
+            {
+                if (string.IsNullOrWhiteSpace(series.Name))
+                    throw new InvalidMessageException("The series name must not be empty.");
+                this.Series = series;
+            }
+
+            public Series Series { get; init; }
+
+            public void Deconstruct(out Series series)
+            {
+                series = this.Series;
+            }
+        }
     }
 
-    private readonly Chart _chart;
+    private readonly ChartControl _chart;
     private Dictionary<string, Series> _seriesIndex;
 
-    public ChartingActor(Chart chart) : this(chart, new())
+    public ChartingActor(ChartControl chart) : this(chart, new())
     {
     }
 
-    public ChartingActor(Chart chart, Dictionary<string, Series> seriesIndex)
+    public ChartingActor(ChartControl chart, Dictionary<string, Series> seriesIndex)
     {
         _chart = chart;
         _seriesIndex = seriesIndex;
-    }
 
-    protected override void OnReceive(ChartingMessage message)
-    {
-        switch (message)
-        {
-            case Messages.InitializeChart initChart:
-                HandleInitialize(initChart);
-                break;
-        }
+        Receive<Messages.InitializeChart>(HandleInitialize);
+        Receive<Messages.AddSeries>(HandleAddSeries);
     }
 
     #region Individual Message Type Handlers
@@ -58,5 +69,9 @@ public class ChartingActor : Actor<ChartingActor, ChartingMessage>
         }
     }
 
+    private void HandleAddSeries(Messages.AddSeries series)
+    {
+
+    }
     #endregion
 }
