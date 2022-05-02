@@ -16,7 +16,7 @@ public interface IActor<TMessageBase>
 {
 
 }
-
+[Obsolete("use ReceiveActor instead")]
 public abstract class Actor<TMessageBase> : UntypedActor, IActor<TMessageBase>
     where TMessageBase : ActorMessage
 {
@@ -61,6 +61,7 @@ public abstract class Actor<TMessageBase> : UntypedActor, IActor<TMessageBase>
 
     protected abstract void OnReceive(TMessageBase message);
 }
+[Obsolete("use ReceiveActor instead")]
 public abstract class Actor<TMessageBase, TParentMessageBase>
     : Actor<TMessageBase>
     where TMessageBase : ActorMessage

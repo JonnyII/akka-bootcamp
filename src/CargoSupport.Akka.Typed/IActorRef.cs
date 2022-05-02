@@ -1,11 +1,37 @@
 ﻿using System.Linq.Expressions;
+using System.Reactive.Disposables;
 
 using Akka.Actor;
 using Akka.Util;
 
 namespace CargoSupport.Akka.Typed;
 
+/// <summary>
+/// incoming actor message (like a public method)
+/// </summary>
 public abstract record ActorMessage;
+
+/// <summary>
+/// outgoing event
+/// they have to be either sealed or abstract and only the final implementation may be passed as parameter to subscribe, otherwise the handler will not be called
+/// </summary>
+public abstract record ActorEventMessage;
+
+public abstract record SubscriptionMessage
+{
+    public abstract Type MessageType { get; }
+}
+
+public abstract record Subscribe : SubscriptionMessage;
+public abstract record Unsubscribe : SubscriptionMessage;
+public sealed record Subscribe<TEventMessage> : Subscribe
+{
+    public override Type MessageType => typeof(TEventMessage);
+}
+public sealed record Unsubscribe<TEventMessage> : Subscribe
+{
+    public override Type MessageType => typeof(TEventMessage);
+}
 
 public interface ICanTell<TMessage>
     where TMessage : ActorMessage
@@ -14,50 +40,53 @@ public interface ICanTell<TMessage>
     internal ICanTell Native { get; }
 }
 
-public interface IActorRef<TActorMessageBase> : ICanTell<TActorMessageBase>
+public interface IActorRef<TActorMessageBase> : ICanTell<TActorMessageBase>, IPathActor
     where TActorMessageBase : ActorMessage
 {
     ISurrogate ToSurrogate(ActorSystem system);
-    ActorPath Path { get; }
     ICanTell ICanTell<TActorMessageBase>.Native => Native;
     internal new IActorRef Native { get; }
 
     void Tell(SystemMessages.SystemMessage message, IActorRef<TActorMessageBase>? sender = null);
 }
 
-public class ActorRefWrapper<TActorMessageBase> : IActorRef<TActorMessageBase>
+public interface IPathActor
+{
+    ActorPath Path { get; }
+}
+internal class ActorRefWrapper<TActorMessageBase> : IActorRef<TActorMessageBase>
     where TActorMessageBase : ActorMessage
 {
-    private readonly IActorRef _source;
-    IActorRef IActorRef<TActorMessageBase>.Native => _source;
+    protected readonly IActorRef Source;
+    IActorRef IActorRef<TActorMessageBase>.Native => Source;
 
 
     internal ActorRefWrapper(IActorRef source)
     {
-        _source = source;
+        Source = source;
     }
 
     public void Tell(TActorMessageBase message, IActorRef<TActorMessageBase>? sender = null)
-        => _source.Tell(message, sender?.Native ?? ActorCell.GetCurrentSelfOrNoSender());// 2nd parameter extracted from ActorRefImplicitSenderExtensions
+        => Source.Tell(message, sender?.Native ?? ActorCell.GetCurrentSelfOrNoSender());// 2nd parameter extracted from ActorRefImplicitSenderExtensions
 
 
     public void Tell(SystemMessages.SystemMessage message, IActorRef<TActorMessageBase>? sender = null)
-        => _source.Tell(message.GetNative());
+        => Source.Tell(message.GetNative());
 
     public bool Equals(IActorRef? other)
-        => _source.Equals(other);
+        => Source.Equals(other);
 
     public int CompareTo(IActorRef? other)
-        => _source.CompareTo(other);
+        => Source.CompareTo(other);
 
     public ISurrogate ToSurrogate(ActorSystem system)
-        => _source.ToSurrogate(system);
+        => Source.ToSurrogate(system);
 
     public int CompareTo(object? obj)
-        => _source.CompareTo(obj);
+        => Source.CompareTo(obj);
 
     public ActorPath Path
-        => _source.Path;
+        => Source.Path;
 }
 
 
@@ -144,4 +173,43 @@ public static class ActorRefHelper
         this IUntypedActorContext actorSystem, string path)
     where TMessage : ActorMessage
         => actorSystem.ActorSelection(path).Receives<TMessage>();
+}
+
+public interface IEventActorRef<in TEventMessage> : IPathActor
+    where TEventMessage : ActorEventMessage
+{
+    /// <summary>
+    /// subscribes the current actor to the event stream of this actorRef
+    /// sends a <see cref="Subscribe{TEvent}"/> to the referenced actor
+    /// sends a <see cref="Unsubscribe{TEventMessage}"/> once the result-disposable has been disposed of
+    /// </summary>
+    /// <typeparam name="TEvent"></typeparam>
+    /// <returns></returns>
+    public IDisposable ListenTo<TEvent>()
+        where TEvent : TEventMessage;
+}
+public interface IEventActorRef<TMessage, in TEventMessage> : IActorRef<TMessage>, IEventActorRef<TEventMessage>
+    where TMessage : ActorMessage
+    where TEventMessage : ActorEventMessage
+{
+}
+
+internal class EventActorRefWrapper<TMessage, TEventMessage> : ActorRefWrapper<TMessage>, IEventActorRef<TMessage, TEventMessage>
+    where TMessage : ActorMessage
+    where TEventMessage : ActorEventMessage
+{
+    internal EventActorRefWrapper(IActorRef source) : base(source)
+    {
+    }
+
+    /// <summary>
+    /// dispose of the disposable to unsubscribe
+    /// </summary>
+    /// <typeparam name="TEvent"></typeparam>
+    /// <returns></returns>
+    public IDisposable ListenTo<TEvent>() where TEvent : TEventMessage
+    {
+        Source.Tell(new Subscribe<TEvent>());
+        return Disposable.Create(() => Source.Tell(new Unsubscribe<TEvent>()));
+    }
 }
