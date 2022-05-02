@@ -12,6 +12,7 @@
 	  <PackageReference Include="Akka" Version="1.4.37" />
 	  <PackageReference Include="devexpress.win.design" Version="21.2.6" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
     <PackageReference Include="System.Windows.Forms.DataVisualization" Version="1.0.0-prerelease.20110.1" />
   </ItemGroup>
 

@@ -43,7 +43,8 @@ namespace ChartApp
 
         private void addSeries_Click(object sender, EventArgs e)
         {
-
+            var series = ChartDataHelper.RandomSeries("FakeSeries" + _seriesCounter.GetAndIncrement());
+            _chartActor!.Tell(new ChartingActor.Messages.AddSeries(series));
         }
     }
 }

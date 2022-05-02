@@ -30,6 +30,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "completed", "completed", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChartApp", "lesson2\Completed\ChartApp.csproj", "{561945F3-6DF4-40A9-89B2-900C623E37F8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lesson3", "lesson3", "{C8405819-AAF0-45BA-BC6D-BB4848735D66}"
+	ProjectSection(SolutionItems) = preProject
+		lesson3\README.md = lesson3\README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -1,6 +1,43 @@
-﻿using Akka.Actor;
+﻿
+using Akka.Actor;
+
+using CargoSupport.Akka.Typed;
 
 namespace ChartApp;
+
+public record TestMessage : ActorMessage;
+
+public record TestEvent : ActorEventMessage;
+
+public record SpecificTestEvent : TestEvent;
+public class TestEventActor : EventActor<TestMessage, TestEvent>
+{
+    public TestEventActor()
+    {
+        this.Receive<TestMessage>(msg =>
+        {
+            this.PublishEvent(new TestEvent());
+        });
+    }
+}
+
+public record OtherMessage : ActorMessage;
+
+public class EventReceiver : SubscribingActor<OtherMessage>
+{
+    public EventReceiver()
+    {
+        IEventActorRef<TestMessage, TestEvent> actor = null!;
+        this.GetEventStream<TestEvent, SpecificTestEvent>(actor)
+            .Subscribe(data =>
+        {
+
+        });
+
+    }
+
+}
+
 internal static class Program
 {
     /// <summary>

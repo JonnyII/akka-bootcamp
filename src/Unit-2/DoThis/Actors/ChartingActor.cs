@@ -6,7 +6,7 @@ using DevExpress.XtraCharts;
 
 namespace ChartApp.Actors;
 public record ChartingMessage : ActorMessage { }
-public class ChartingActor : ReceiveActor<ChartingActor, ChartingMessage>
+public class ChartingActor : ReceiveActor<ChartingMessage>
 {
     public class Messages
     {
@@ -17,7 +17,7 @@ public class ChartingActor : ReceiveActor<ChartingActor, ChartingMessage>
             public AddSeries(Series series)
             {
                 if (string.IsNullOrWhiteSpace(series.Name))
-                    throw new InvalidMessageException("The series name must not be empty.");
+                    throw new InvalidMessageException("The seriesMessage name must not be empty.");
                 this.Series = series;
             }
 
@@ -33,9 +33,7 @@ public class ChartingActor : ReceiveActor<ChartingActor, ChartingMessage>
     private readonly ChartControl _chart;
     private Dictionary<string, Series> _seriesIndex;
 
-    public ChartingActor(ChartControl chart) : this(chart, new())
-    {
-    }
+    public ChartingActor(ChartControl chart) : this(chart, new()) { }
 
     public ChartingActor(ChartControl chart, Dictionary<string, Series> seriesIndex)
     {
@@ -51,10 +49,10 @@ public class ChartingActor : ReceiveActor<ChartingActor, ChartingMessage>
     private void HandleInitialize(Messages.InitializeChart ic)
     {
         if (ic.InitialSeries is not null)
-            //swap the two series out
+            //swap the two seriesMessage out
             _seriesIndex = ic.InitialSeries;
 
-        //delete any existing series
+        //delete any existing seriesMessage
         _chart.Series.Clear();
 
         //attempt to render the initial chart
@@ -69,9 +67,12 @@ public class ChartingActor : ReceiveActor<ChartingActor, ChartingMessage>
         }
     }
 
-    private void HandleAddSeries(Messages.AddSeries series)
+    private void HandleAddSeries(Messages.AddSeries seriesMessage)
     {
-
+        if (_seriesIndex.ContainsKey(seriesMessage.Series.Name))
+            return;
+        _seriesIndex.Add(seriesMessage.Series.Name, seriesMessage.Series);
+        _chart.Series.Add(seriesMessage.Series);
     }
     #endregion
 }
