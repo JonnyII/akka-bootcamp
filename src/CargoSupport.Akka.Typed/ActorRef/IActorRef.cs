@@ -6,42 +6,15 @@ using Akka.Util;
 
 namespace CargoSupport.Akka.Typed;
 
-/// <summary>
-/// incoming actor message (like a public method)
-/// </summary>
-public abstract record ActorMessage;
-
-/// <summary>
-/// outgoing event
-/// they have to be either sealed or abstract and only the final implementation may be passed as parameter to subscribe, otherwise the handler will not be called
-/// </summary>
-public abstract record ActorEventMessage;
-
-public abstract record SubscriptionMessage
-{
-    public abstract Type MessageType { get; }
-}
-
-public abstract record Subscribe : SubscriptionMessage;
-public abstract record Unsubscribe : SubscriptionMessage;
-public sealed record Subscribe<TEventMessage> : Subscribe
-{
-    public override Type MessageType => typeof(TEventMessage);
-}
-public sealed record Unsubscribe<TEventMessage> : Subscribe
-{
-    public override Type MessageType => typeof(TEventMessage);
-}
-
 public interface ICanTell<TMessage>
-    where TMessage : ActorMessage
+    where TMessage : FrameworkMessages.ActorCommand
 {
     void Tell(TMessage message, IActorRef<TMessage>? sender = null);
     internal ICanTell Native { get; }
 }
 
 public interface IActorRef<TActorMessageBase> : ICanTell<TActorMessageBase>, IPathActor
-    where TActorMessageBase : ActorMessage
+    where TActorMessageBase : FrameworkMessages.ActorCommand
 {
     ISurrogate ToSurrogate(ActorSystem system);
     ICanTell ICanTell<TActorMessageBase>.Native => Native;
@@ -55,7 +28,7 @@ public interface IPathActor
     ActorPath Path { get; }
 }
 internal class ActorRefWrapper<TActorMessageBase> : IActorRef<TActorMessageBase>
-    where TActorMessageBase : ActorMessage
+    where TActorMessageBase : FrameworkMessages.ActorCommand
 {
     protected readonly IActorRef Source;
     IActorRef IActorRef<TActorMessageBase>.Native => Source;
@@ -91,7 +64,7 @@ internal class ActorRefWrapper<TActorMessageBase> : IActorRef<TActorMessageBase>
 
 
 public interface IActorSelection<TMessage> : ICanTell<TMessage>
-    where TMessage : ActorMessage
+    where TMessage : FrameworkMessages.ActorCommand
 {
     IActorRef<TMessage> Anchor { get; }
     SelectionPathElement[] Path { get; }
@@ -100,7 +73,7 @@ public interface IActorSelection<TMessage> : ICanTell<TMessage>
 }
 
 public class ActorSelectionWrapper<TMessage> : IActorSelection<TMessage>
-    where TMessage : ActorMessage
+    where TMessage : FrameworkMessages.ActorCommand
 {
     private readonly ActorSelection _actorSelection;
 
@@ -134,54 +107,54 @@ public static class ActorRefHelper
     /// <param name="actor"></param>
     /// <returns></returns>
     public static IActorRef<TMessage> Receives<TMessage>(this IActorRef actor)
-    where TMessage : ActorMessage
+    where TMessage : FrameworkMessages.ActorCommand
         => new ActorRefWrapper<TMessage>(actor);
 
     #region ActorOf
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, Expression<Func<TActor>> factory, string? name = null)
         where TActor : ActorBase, IActor<TMessage>
-        where TMessage : ActorMessage
+        where TMessage : FrameworkMessages.ActorCommand
         => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, Expression<Func<TActor>> factory, string? name = null)
         where TActor : ActorBase, IActor<TMessage>
-        where TMessage : ActorMessage
+        where TMessage : FrameworkMessages.ActorCommand
         => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, string? name = null)
         where TActor : ActorBase, IActor<TMessage>, new()
-        where TMessage : ActorMessage
+        where TMessage : FrameworkMessages.ActorCommand
         => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, string? name = null)
         where TActor : ActorBase, IActor<TMessage>, new()
-        where TMessage : ActorMessage
+        where TMessage : FrameworkMessages.ActorCommand
         => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
 
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, TypedProps<TActor> props, string? name = null)
         where TActor : ActorBase, IActor<TMessage>
-        where TMessage : ActorMessage
+        where TMessage : FrameworkMessages.ActorCommand
         => actorSystem.ActorOf((Props)props, name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
     public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, TypedProps<TActor> props, string? name = null)
         where TActor : ActorBase, IActor<TMessage>
-        where TMessage : ActorMessage
+        where TMessage : FrameworkMessages.ActorCommand
         => actorSystem.ActorOf((Props)props, name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
     #endregion
 
     public static IActorSelection<TMessage> Receives<TMessage>(this ActorSelection selection)
-        where TMessage : ActorMessage
+        where TMessage : FrameworkMessages.ActorCommand
         => new ActorSelectionWrapper<TMessage>(selection);
 
     public static IActorSelection<TMessage> ActorSelection<TMessage>(
         this IUntypedActorContext actorSystem, string path)
-    where TMessage : ActorMessage
+    where TMessage : FrameworkMessages.ActorCommand
         => actorSystem.ActorSelection(path).Receives<TMessage>();
 }
 
 public interface IEventActorRef<in TEventMessage> : IPathActor
-    where TEventMessage : ActorEventMessage
+    where TEventMessage : FrameworkMessages.ActorEventMessage
 {
     /// <summary>
     /// subscribes the current actor to the event stream of this actorRef
-    /// sends a <see cref="Subscribe{TEvent}"/> to the referenced actor
-    /// sends a <see cref="Unsubscribe{TEventMessage}"/> once the result-disposable has been disposed of
+    /// sends a <see cref="FrameworkMessages.Subscribe"/> to the referenced actor
+    /// sends a <see cref="FrameworkMessages.Unsubscribe"/> once the result-disposable has been disposed of
     /// </summary>
     /// <typeparam name="TEvent"></typeparam>
     /// <returns></returns>
@@ -189,14 +162,14 @@ public interface IEventActorRef<in TEventMessage> : IPathActor
         where TEvent : TEventMessage;
 }
 public interface IEventActorRef<TMessage, in TEventMessage> : IActorRef<TMessage>, IEventActorRef<TEventMessage>
-    where TMessage : ActorMessage
-    where TEventMessage : ActorEventMessage
+    where TMessage : FrameworkMessages.ActorCommand
+    where TEventMessage : FrameworkMessages.ActorEventMessage
 {
 }
 
 internal class EventActorRefWrapper<TMessage, TEventMessage> : ActorRefWrapper<TMessage>, IEventActorRef<TMessage, TEventMessage>
-    where TMessage : ActorMessage
-    where TEventMessage : ActorEventMessage
+    where TMessage : FrameworkMessages.ActorCommand
+    where TEventMessage : FrameworkMessages.ActorEventMessage
 {
     internal EventActorRefWrapper(IActorRef source) : base(source)
     {
@@ -209,7 +182,7 @@ internal class EventActorRefWrapper<TMessage, TEventMessage> : ActorRefWrapper<T
     /// <returns></returns>
     public IDisposable ListenTo<TEvent>() where TEvent : TEventMessage
     {
-        Source.Tell(new Subscribe<TEvent>());
-        return Disposable.Create(() => Source.Tell(new Unsubscribe<TEvent>()));
+        Source.Tell(new FrameworkMessages.Subscribe<TEvent>());
+        return Disposable.Create(() => Source.Tell(new FrameworkMessages.Unsubscribe<TEvent>()));
     }
 }

@@ -28,20 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.AddSeries = new System.Windows.Forms.Button();
             this.sysChart = new DevExpress.XtraCharts.ChartControl();
+            this.Cpu = new System.Windows.Forms.Button();
+            this.Memory = new System.Windows.Forms.Button();
+            this.Disk = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.sysChart)).BeginInit();
             this.SuspendLayout();
-            // 
-            // AddSeries
-            // 
-            this.AddSeries.Location = new System.Drawing.Point(679, 357);
-            this.AddSeries.Name = "AddSeries";
-            this.AddSeries.Size = new System.Drawing.Size(75, 23);
-            this.AddSeries.TabIndex = 0;
-            this.AddSeries.Text = "AddSeries";
-            this.AddSeries.UseVisualStyleBackColor = true;
-            this.AddSeries.Click += new System.EventHandler(this.addSeries_Click);
             // 
             // sysChart
             // 
@@ -51,13 +43,45 @@
             this.sysChart.Size = new System.Drawing.Size(661, 491);
             this.sysChart.TabIndex = 1;
             // 
+            // Cpu
+            // 
+            this.Cpu.Location = new System.Drawing.Point(679, 368);
+            this.Cpu.Name = "Cpu";
+            this.Cpu.Size = new System.Drawing.Size(107, 41);
+            this.Cpu.TabIndex = 2;
+            this.Cpu.Text = "CPU (ON)";
+            this.Cpu.UseVisualStyleBackColor = true;
+            this.Cpu.Click += new System.EventHandler(this.Cpu_Click);
+            // 
+            // Memory
+            // 
+            this.Memory.Location = new System.Drawing.Point(679, 415);
+            this.Memory.Name = "Memory";
+            this.Memory.Size = new System.Drawing.Size(107, 41);
+            this.Memory.TabIndex = 3;
+            this.Memory.Text = "MEMORY (OFF)";
+            this.Memory.UseVisualStyleBackColor = true;
+            this.Memory.Click += new System.EventHandler(this.Memory_Click);
+            // 
+            // Disk
+            // 
+            this.Disk.Location = new System.Drawing.Point(679, 462);
+            this.Disk.Name = "Disk";
+            this.Disk.Size = new System.Drawing.Size(107, 41);
+            this.Disk.TabIndex = 4;
+            this.Disk.Text = "DISK (OFF)";
+            this.Disk.UseVisualStyleBackColor = true;
+            this.Disk.Click += new System.EventHandler(this.Disk_Click);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(798, 515);
+            this.Controls.Add(this.Disk);
+            this.Controls.Add(this.Memory);
+            this.Controls.Add(this.Cpu);
             this.Controls.Add(this.sysChart);
-            this.Controls.Add(this.AddSeries);
             this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.Name = "Main";
             this.Text = "System Metrics";
@@ -69,9 +93,10 @@
         }
 
         #endregion
-
-        private Button AddSeries;
         private DevExpress.XtraCharts.ChartControl sysChart;
+        private Button Cpu;
+        private Button Memory;
+        private Button Disk;
     }
 }
 

@@ -5,29 +5,29 @@ using CargoSupport.Akka.Typed;
 
 namespace ChartApp;
 
-public record TestMessage : ActorMessage;
+public record TestCommand : FrameworkMessages.ActorCommand;
 
-public record TestEvent : ActorEventMessage;
+public record TestEvent : FrameworkMessages.ActorEventMessage;
 
 public record SpecificTestEvent : TestEvent;
-public class TestEventActor : EventActor<TestMessage, TestEvent>
+public class TestEventActor : EventActor<TestCommand, TestEvent>
 {
     public TestEventActor()
     {
-        this.Receive<TestMessage>(msg =>
+        this.Receive<TestCommand>(msg =>
         {
             this.PublishEvent(new TestEvent());
         });
     }
 }
 
-public record OtherMessage : ActorMessage;
+public record OtherCommand : FrameworkMessages.ActorCommand;
 
-public class EventReceiver : SubscribingActor<OtherMessage>
+public class EventReceiver : SubscribingActor<OtherCommand>
 {
     public EventReceiver()
     {
-        IEventActorRef<TestMessage, TestEvent> actor = null!;
+        IEventActorRef<TestCommand, TestEvent> actor = null!;
         this.GetEventStream<TestEvent, SpecificTestEvent>(actor)
             .Subscribe(data =>
         {

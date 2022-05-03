@@ -9,7 +9,7 @@ namespace CargoSupport.Akka.Typed;
 /// </summary>
 /// <typeparam name="TMessageBase"></typeparam>
 public abstract class ReceiveActor<TMessageBase> : ReceiveActor, IActor<TMessageBase>
-    where TMessageBase : ActorMessage
+    where TMessageBase : FrameworkMessages.ActorCommand
 {
     private readonly ActorReceiverFallbackMode _receiverFallbackMode;
 
@@ -49,6 +49,9 @@ public abstract class ReceiveActor<TMessageBase> : ReceiveActor, IActor<TMessage
     protected void Receive<T>(Action<T> action)
         where T : TMessageBase
         => base.Receive(action);
+    protected void Receive<T>(Action action)
+        where T : TMessageBase
+        => base.Receive<T>(_ => action());
 
 
     #region obsolete overrides
@@ -133,23 +136,4 @@ public abstract class ReceiveActor<TMessageBase> : ReceiveActor, IActor<TMessage
     public void BecomeStacked(Action<TMessageBase> newReceiver, Action<IMultiActorMessage>? genericReceiver = null)
         => base.Become(rawMessage => Receiver(rawMessage, newReceiver, genericReceiver));
 
-}
-
-public static class Helper
-{
-    public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key,
-        Func<TValue> valueFactory)
-    {
-        if (dictionary.TryGetValue(key, out var value))
-            return value;
-
-        value = valueFactory();
-        dictionary.Add(key, value);
-
-        return value;
-    }
-
-    public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
-        where TValue : new()
-        => dictionary.GetOrAdd(key, () => new());
 }

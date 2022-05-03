@@ -12,7 +12,7 @@ namespace CargoSupport.Akka.Typed;
 internal class SubscriptionManager : IDisposable
 {
     private readonly CompositeDisposable _disposables = new();
-    private readonly Dictionary<Type, Subject<ActorEventMessage>> _relayRegistry = new();
+    private readonly Dictionary<Type, Subject<FrameworkMessages.ActorEventMessage>> _relayRegistry = new();
     public void Dispose()
     {
         _disposables.Dispose();
@@ -41,7 +41,7 @@ internal class SubscriptionManager : IDisposable
         Action<Predicate<TEventMessage>, Action<TEventMessage>> addReceiveHandler,
         Func<IActorRef> getSender,
         Predicate<TEventMessage>? filter = null)
-        where TEventMessage : ActorEventMessage
+        where TEventMessage : FrameworkMessages.ActorEventMessage
     {
         return Observable.Create((IObserver<TEventMessage> observer) =>
         {

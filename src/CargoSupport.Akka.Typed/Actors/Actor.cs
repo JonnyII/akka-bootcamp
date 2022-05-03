@@ -12,13 +12,13 @@ public enum ActorReceiverFallbackMode
 }
 
 public interface IActor<TMessageBase>
-    where TMessageBase : ActorMessage
+    where TMessageBase : FrameworkMessages.ActorCommand
 {
 
 }
 [Obsolete("use ReceiveActor instead")]
 public abstract class Actor<TMessageBase> : UntypedActor, IActor<TMessageBase>
-    where TMessageBase : ActorMessage
+    where TMessageBase : FrameworkMessages.ActorCommand
 {
     private readonly ActorReceiverFallbackMode _receiverFallbackMode;
 
@@ -64,8 +64,8 @@ public abstract class Actor<TMessageBase> : UntypedActor, IActor<TMessageBase>
 [Obsolete("use ReceiveActor instead")]
 public abstract class Actor<TMessageBase, TParentMessageBase>
     : Actor<TMessageBase>
-    where TMessageBase : ActorMessage
-    where TParentMessageBase : ActorMessage
+    where TMessageBase : FrameworkMessages.ActorCommand
+    where TParentMessageBase : FrameworkMessages.ActorCommand
 {
     // impossible, since the child can send messages too
     //protected new IActorRef<TParent, TParentMessageBase> Sender

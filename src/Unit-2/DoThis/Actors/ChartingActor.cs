@@ -5,14 +5,14 @@ using CargoSupport.Akka.Typed;
 using DevExpress.XtraCharts;
 
 namespace ChartApp.Actors;
-public record ChartingMessage : ActorMessage { }
-public class ChartingActor : ReceiveActor<ChartingMessage>
+public record ChartingCommand : FrameworkMessages.ActorCommand { }
+public class ChartingActor : ReceiveActor<ChartingCommand>
 {
     public class Messages
     {
-        public record InitializeChart(Dictionary<string, Series>? InitialSeries) : ChartingMessage;
+        public record InitializeChart(Dictionary<string, Series>? InitialSeries) : ChartingCommand;
 
-        public record AddSeries : ChartingMessage
+        public record AddSeries : ChartingCommand
         {
             public AddSeries(Series series)
             {

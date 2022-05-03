@@ -1,4 +1,5 @@
-﻿using Akka.Util.Internal;
+﻿using Akka.Actor;
+using Akka.Util.Internal;
 
 using CargoSupport.Akka.Typed;
 
@@ -7,9 +8,19 @@ using ChartApp.Actors;
 namespace ChartApp
 {
 
+    public enum CounterType
+    {
+        Cpu,
+        Memory,
+        Disk
+    }
+
+    public record TutorialSubscriptionMessage;
+    public record SubscribeCounter(CounterType Counter, IActorRef Subscriber) : TutorialSubscriptionMessage;
+    public record UnsubscribeCounter(CounterType Counter, IActorRef Subscriber) : TutorialSubscriptionMessage;
     public partial class Main : Form
     {
-        private IActorRef<ChartingMessage>? _chartActor;
+        private IActorRef<ChartingCommand>? _chartActor;
         private readonly AtomicCounter _seriesCounter = new(1);
 
         public Main()
@@ -22,7 +33,7 @@ namespace ChartApp
 
         private void Main_Load(object sender, EventArgs e)
         {
-            _chartActor = Program.ChartActors.ActorOf<ChartingActor, ChartingMessage>(() => new(sysChart), "charting");
+            _chartActor = Program.ChartActors.ActorOf<ChartingActor, ChartingCommand>(() => new(sysChart), "charting");
             var series = ChartDataHelper.RandomSeries("FakeSeries" + _seriesCounter.GetAndIncrement());
             _chartActor.Tell(new ChartingActor.Messages.InitializeChart(new()
             {
@@ -41,10 +52,19 @@ namespace ChartApp
 
         #endregion
 
-        private void addSeries_Click(object sender, EventArgs e)
+        private void Cpu_Click(object sender, EventArgs e)
         {
-            var series = ChartDataHelper.RandomSeries("FakeSeries" + _seriesCounter.GetAndIncrement());
-            _chartActor!.Tell(new ChartingActor.Messages.AddSeries(series));
+
+        }
+
+        private void Memory_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Disk_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

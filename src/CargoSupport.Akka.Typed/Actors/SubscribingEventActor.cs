@@ -6,8 +6,8 @@
 /// </summary>
 public class SubscribingEventActor<TMessageBase, TEventMessageBase>
     : EventActor<TMessageBase, TEventMessageBase>
-    where TMessageBase : ActorMessage
-    where TEventMessageBase : ActorEventMessage
+    where TMessageBase : FrameworkMessages.ActorCommand
+    where TEventMessageBase : FrameworkMessages.ActorEventMessage
 {
     private readonly SubscriptionManager _subscriptionManager;
 
@@ -23,7 +23,7 @@ public class SubscribingEventActor<TMessageBase, TEventMessageBase>
     /// <param name="sender"></param>
     /// <returns></returns>
     protected IObservable<TEventMessage> GetEventStream<TEventMessage>(IEventActorRef<TEventMessage> sender)
-        where TEventMessage : ActorEventMessage
+        where TEventMessage : FrameworkMessages.ActorEventMessage
         => _subscriptionManager.GetEventStream(sender, UnsafeReceive, () => Sender);
 
 }
