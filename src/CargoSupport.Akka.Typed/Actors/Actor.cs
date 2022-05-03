@@ -15,14 +15,14 @@ public enum ActorReceiverFallbackMode
     Ignore
 }
 
-public interface IActor<TMessageBase>
-    where TMessageBase : FrameworkMessages.ActorCommand
+public interface IActor<TCommandBase>
+    where TCommandBase : FrameworkMessages.ActorCommand
 {
 
 }
 [Obsolete("use ReceiveActor instead")]
-public abstract class Actor<TMessageBase> : UntypedActor, IActor<TMessageBase>
-    where TMessageBase : FrameworkMessages.ActorCommand
+public abstract class Actor<TCommandBase> : UntypedActor, IActor<TCommandBase>
+    where TCommandBase : FrameworkMessages.ActorCommand
 {
     private readonly ActorReceiverFallbackMode _receiverFallbackMode;
 
@@ -30,13 +30,13 @@ public abstract class Actor<TMessageBase> : UntypedActor, IActor<TMessageBase>
     {
         _receiverFallbackMode = receiverFallbackMode;
     }
-    protected new IActorRef<TMessageBase> Self => base.Self.Receives<TMessageBase>();
-    private void Receiver(object rawMessage, Action<TMessageBase> handler, Action<IMultiActorMessage>? genericReceiver)
+    protected new IActorRef<TCommandBase> Self => base.Self.Receives<TCommandBase>();
+    private void Receiver(object rawMessage, Action<TCommandBase> handler, Action<IMultiActorMessage>? genericReceiver)
     {
         switch (rawMessage)
         {
-            case TMessageBase typedMessage:
-                handler(typedMessage);
+            case TCommandBase typedCommand:
+                handler(typedCommand);
                 return;
             case IMultiActorMessage genericMessage when genericReceiver is not null:
                 genericReceiver(genericMessage);
@@ -57,19 +57,19 @@ public abstract class Actor<TMessageBase> : UntypedActor, IActor<TMessageBase>
     protected override void OnReceive(object rawMessage)
         => Receiver(rawMessage, OnReceive, OnReceive);
     protected virtual void OnReceive(IMultiActorMessage multiActorMessage) { }
-    public void Become(Action<TMessageBase> newReceiver, Action<IMultiActorMessage>? genericReceiver = null)
+    public void Become(Action<TCommandBase> newReceiver, Action<IMultiActorMessage>? genericReceiver = null)
         => base.Become(rawMessage => Receiver(rawMessage, newReceiver, genericReceiver));
 
-    public void BecomeStacked(Action<TMessageBase> newReceiver, Action<IMultiActorMessage>? genericReceiver = null)
+    public void BecomeStacked(Action<TCommandBase> newReceiver, Action<IMultiActorMessage>? genericReceiver = null)
         => base.Become(rawMessage => Receiver(rawMessage, newReceiver, genericReceiver));
 
-    protected abstract void OnReceive(TMessageBase message);
+    protected abstract void OnReceive(TCommandBase message);
 }
 [Obsolete("use ReceiveActor instead")]
-public abstract class Actor<TMessageBase, TParentMessageBase>
-    : Actor<TMessageBase>
-    where TMessageBase : FrameworkMessages.ActorCommand
-    where TParentMessageBase : FrameworkMessages.ActorCommand
+public abstract class Actor<TCommandBase, TParentCommandBase>
+    : Actor<TCommandBase>
+    where TCommandBase : FrameworkMessages.ActorCommand
+    where TParentCommandBase : FrameworkMessages.ActorCommand
 {
     // impossible, since the child can send messages too
     //protected new IActorRef<TParent, TParentMessageBase> Sender

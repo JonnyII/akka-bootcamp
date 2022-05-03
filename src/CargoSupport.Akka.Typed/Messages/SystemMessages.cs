@@ -3,14 +3,14 @@
 namespace CargoSupport.Akka.Typed.Messages;
 public static class SystemMessages
 {
-    public abstract record SystemMessage
+    public abstract record SystemCommand
     {
-        internal SystemMessage() { }
+        internal SystemCommand() { }
         public abstract object GetNative();
     }
 
     public static PoisonPillClass PoisonPill = new();
-    public record PoisonPillClass : SystemMessage
+    public record PoisonPillClass : SystemCommand
     {
         internal PoisonPillClass() { }
         public override NativePoisonPill GetNative()
@@ -29,7 +29,7 @@ public static class FrameworkMessages
     /// outgoing event
     /// they have to be either sealed or abstract and only the final implementation may be passed as parameter to subscribe, otherwise the handler will not be called
     /// </summary>
-    public abstract record ActorEventMessage;
+    public abstract record ActorEvent;
 
     public abstract record SubscriptionMessage
     {

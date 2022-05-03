@@ -1,41 +1,38 @@
-﻿using System.Linq.Expressions;
-using System.Reactive.Disposables;
+﻿using System.Reactive.Disposables;
 
 using Akka.Actor;
 using Akka.Util;
 
-using CargoSupport.Akka.Typed.Actors;
-using CargoSupport.Akka.Typed.Helper;
 using CargoSupport.Akka.Typed.Messages;
 
 namespace CargoSupport.Akka.Typed.ActorRef;
 
-public interface ICanTell<TMessage>
-    where TMessage : FrameworkMessages.ActorCommand
+public interface ICanTell<TCommand>
+    where TCommand : FrameworkMessages.ActorCommand
 {
-    void Tell(TMessage message, IActorRef<TMessage>? sender = null);
+    void Tell(TCommand command, IActorRef<TCommand>? sender = null);
     internal ICanTell Native { get; }
 }
 
-public interface IActorRef<TActorMessageBase> : ICanTell<TActorMessageBase>, IPathActor
-    where TActorMessageBase : FrameworkMessages.ActorCommand
+public interface IActorRef<TCommandBase> : ICanTell<TCommandBase>, IPathActor
+    where TCommandBase : FrameworkMessages.ActorCommand
 {
     ISurrogate ToSurrogate(ActorSystem system);
-    ICanTell ICanTell<TActorMessageBase>.Native => Native;
+    ICanTell ICanTell<TCommandBase>.Native => Native;
     internal new IActorRef Native { get; }
 
-    void Tell(SystemMessages.SystemMessage message, IActorRef<TActorMessageBase>? sender = null);
+    void Tell(SystemMessages.SystemCommand command, IActorRef<TCommandBase>? sender = null);
 }
 
 public interface IPathActor
 {
     ActorPath Path { get; }
 }
-internal class ActorRefWrapper<TActorMessageBase> : IActorRef<TActorMessageBase>
-    where TActorMessageBase : FrameworkMessages.ActorCommand
+internal class ActorRefWrapper<TCommandBase> : IActorRef<TCommandBase>
+    where TCommandBase : FrameworkMessages.ActorCommand
 {
     protected readonly IActorRef Source;
-    IActorRef IActorRef<TActorMessageBase>.Native => Source;
+    IActorRef IActorRef<TCommandBase>.Native => Source;
 
 
     internal ActorRefWrapper(IActorRef source)
@@ -43,12 +40,12 @@ internal class ActorRefWrapper<TActorMessageBase> : IActorRef<TActorMessageBase>
         Source = source;
     }
 
-    public void Tell(TActorMessageBase message, IActorRef<TActorMessageBase>? sender = null)
-        => Source.Tell(message, sender?.Native ?? ActorCell.GetCurrentSelfOrNoSender());// 2nd parameter extracted from ActorRefImplicitSenderExtensions
+    public void Tell(TCommandBase command, IActorRef<TCommandBase>? sender = null)
+        => Source.Tell(command, sender?.Native ?? ActorCell.GetCurrentSelfOrNoSender());// 2nd parameter extracted from ActorRefImplicitSenderExtensions
 
 
-    public void Tell(SystemMessages.SystemMessage message, IActorRef<TActorMessageBase>? sender = null)
-        => Source.Tell(message.GetNative());
+    public void Tell(SystemMessages.SystemCommand command, IActorRef<TCommandBase>? sender = null)
+        => Source.Tell(command.GetNative());
 
     public bool Equals(IActorRef? other)
         => Source.Equals(other);
@@ -67,17 +64,17 @@ internal class ActorRefWrapper<TActorMessageBase> : IActorRef<TActorMessageBase>
 }
 
 
-public interface IActorSelection<TMessage> : ICanTell<TMessage>
-    where TMessage : FrameworkMessages.ActorCommand
+public interface IActorSelection<TCommandBase> : ICanTell<TCommandBase>
+    where TCommandBase : FrameworkMessages.ActorCommand
 {
-    IActorRef<TMessage> Anchor { get; }
+    IActorRef<TCommandBase> Anchor { get; }
     SelectionPathElement[] Path { get; }
     string PathString { get; }
-    Task<IActorRef<TMessage>> ResolveOne(TimeSpan timeout, CancellationToken? ct = null);
+    Task<IActorRef<TCommandBase>> ResolveOne(TimeSpan timeout, CancellationToken? ct = null);
 }
 
-public class ActorSelectionWrapper<TMessage> : IActorSelection<TMessage>
-    where TMessage : FrameworkMessages.ActorCommand
+public class ActorSelectionWrapper<TComamndBase> : IActorSelection<TComamndBase>
+    where TComamndBase : FrameworkMessages.ActorCommand
 {
     private readonly ActorSelection _actorSelection;
 
@@ -86,74 +83,22 @@ public class ActorSelectionWrapper<TMessage> : IActorSelection<TMessage>
         _actorSelection = actorSelection;
     }
 
-    public IActorRef<TMessage> Anchor => _actorSelection.Anchor.Receives<TMessage>();
+    public IActorRef<TComamndBase> Anchor => _actorSelection.Anchor.Receives<TComamndBase>();
     public SelectionPathElement[] Path => _actorSelection.Path;
     public string PathString => _actorSelection.PathString;
-    public void Tell(TMessage message, IActorRef<TMessage>? sender = null)
-        => _actorSelection.Tell(message, sender?.Native);
+    public void Tell(TComamndBase command, IActorRef<TComamndBase>? sender = null)
+        => _actorSelection.Tell(command, sender?.Native);
 
-    ICanTell ICanTell<TMessage>.Native => _actorSelection;
+    ICanTell ICanTell<TComamndBase>.Native => _actorSelection;
 
-    public Task<IActorRef<TMessage>> ResolveOne(TimeSpan timeout, CancellationToken? ct = null)
+    public Task<IActorRef<TComamndBase>> ResolveOne(TimeSpan timeout, CancellationToken? ct = null)
         => _actorSelection
             .ResolveOne(timeout, ct ?? CancellationToken.None)
-            .ContinueWith(actor => actor.Result.Receives<TMessage>(), ct ?? CancellationToken.None);
+            .ContinueWith(actor => actor.Result.Receives<TComamndBase>(), ct ?? CancellationToken.None);
 }
 
-public static class ActorRefHelper
-{
-    /// <summary>
-    /// interprets the ActorRef to be of the specified Actor Type.<br/>
-    /// This does not provide runtime TypeChecks!
-    /// if the actor does not have the specified type, no exception will be thrown and the messages will be send regardless, without Error!
-    /// </summary>
-    /// <typeparam name="TMessage"></typeparam>
-    /// <param name="actor"></param>
-    /// <returns></returns>
-    public static IActorRef<TMessage> Receives<TMessage>(this IActorRef actor)
-    where TMessage : FrameworkMessages.ActorCommand
-        => new ActorRefWrapper<TMessage>(actor);
-
-    #region ActorOf
-    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, Expression<Func<TActor>> factory, string? name = null)
-        where TActor : ActorBase, IActor<TMessage>
-        where TMessage : FrameworkMessages.ActorCommand
-        => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
-    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, Expression<Func<TActor>> factory, string? name = null)
-        where TActor : ActorBase, IActor<TMessage>
-        where TMessage : FrameworkMessages.ActorCommand
-        => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
-    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, string? name = null)
-        where TActor : ActorBase, IActor<TMessage>, new()
-        where TMessage : FrameworkMessages.ActorCommand
-        => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
-    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, string? name = null)
-        where TActor : ActorBase, IActor<TMessage>, new()
-        where TMessage : FrameworkMessages.ActorCommand
-        => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
-
-    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this ActorSystem actorSystem, TypedProps<TActor> props, string? name = null)
-        where TActor : ActorBase, IActor<TMessage>
-        where TMessage : FrameworkMessages.ActorCommand
-        => actorSystem.ActorOf((Props)props, name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
-    public static IActorRef<TMessage> ActorOf<TActor, TMessage>(this IUntypedActorContext actorSystem, TypedProps<TActor> props, string? name = null)
-        where TActor : ActorBase, IActor<TMessage>
-        where TMessage : FrameworkMessages.ActorCommand
-        => actorSystem.ActorOf((Props)props, name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TMessage>();
-    #endregion
-
-    public static IActorSelection<TMessage> Receives<TMessage>(this ActorSelection selection)
-        where TMessage : FrameworkMessages.ActorCommand
-        => new ActorSelectionWrapper<TMessage>(selection);
-
-    public static IActorSelection<TMessage> ActorSelection<TMessage>(
-        this IUntypedActorContext actorSystem, string path)
-    where TMessage : FrameworkMessages.ActorCommand
-        => actorSystem.ActorSelection(path).Receives<TMessage>();
-}
-
-public interface IEventActorRef<in TEventMessage> : IPathActor
-    where TEventMessage : FrameworkMessages.ActorEventMessage
+public interface IEventActorRef<in TEventBase> : IPathActor
+    where TEventBase : FrameworkMessages.ActorEvent
 {
     /// <summary>
     /// subscribes the current actor to the event stream of this actorRef
@@ -163,17 +108,17 @@ public interface IEventActorRef<in TEventMessage> : IPathActor
     /// <typeparam name="TEvent"></typeparam>
     /// <returns></returns>
     public IDisposable ListenTo<TEvent>()
-        where TEvent : TEventMessage;
+        where TEvent : TEventBase;
 }
-public interface IEventActorRef<TMessage, in TEventMessage> : IActorRef<TMessage>, IEventActorRef<TEventMessage>
-    where TMessage : FrameworkMessages.ActorCommand
-    where TEventMessage : FrameworkMessages.ActorEventMessage
+public interface IEventActorRef<TCommandBase, in TEventBase> : IActorRef<TCommandBase>, IEventActorRef<TEventBase>
+    where TCommandBase : FrameworkMessages.ActorCommand
+    where TEventBase : FrameworkMessages.ActorEvent
 {
 }
 
-internal class EventActorRefWrapper<TMessage, TEventMessage> : ActorRefWrapper<TMessage>, IEventActorRef<TMessage, TEventMessage>
-    where TMessage : FrameworkMessages.ActorCommand
-    where TEventMessage : FrameworkMessages.ActorEventMessage
+internal class EventActorRefWrapper<TCommandBase, TEventBase> : ActorRefWrapper<TCommandBase>, IEventActorRef<TCommandBase, TEventBase>
+    where TCommandBase : FrameworkMessages.ActorCommand
+    where TEventBase : FrameworkMessages.ActorEvent
 {
     internal EventActorRefWrapper(IActorRef source) : base(source)
     {
@@ -184,7 +129,7 @@ internal class EventActorRefWrapper<TMessage, TEventMessage> : ActorRefWrapper<T
     /// </summary>
     /// <typeparam name="TEvent"></typeparam>
     /// <returns></returns>
-    public IDisposable ListenTo<TEvent>() where TEvent : TEventMessage
+    public IDisposable ListenTo<TEvent>() where TEvent : TEventBase
     {
         Source.Tell(new FrameworkMessages.Subscribe<TEvent>());
         return Disposable.Create(() => Source.Tell(new FrameworkMessages.Unsubscribe<TEvent>()));

@@ -14,32 +14,32 @@ public static class ActorHelper
 
     public static ICancelable ScheduleTellRepeatedlyCancelable<TMessage>(
         this IScheduler scheduler, TimeSpan initialDelay, TimeSpan interval,
-            ICanTell<TMessage> receiver, TMessage message)
+            ICanTell<TMessage> receiver, TMessage command)
         where TMessage : FrameworkMessages.ActorCommand
-        => scheduler.ScheduleTellRepeatedlyCancelable(initialDelay, interval, receiver.Native, message, ActorRefs.Nobody);
+        => scheduler.ScheduleTellRepeatedlyCancelable(initialDelay, interval, receiver.Native, command, ActorRefs.Nobody);
 
-    public static void ScheduleTellRepeatedly<TMessage>(
+    public static void ScheduleTellRepeatedly<TCommand>(
         this IScheduler scheduler, TimeSpan initialDelay, TimeSpan interval,
-            ICanTell<TMessage> receiver, TMessage message)
-        where TMessage : FrameworkMessages.ActorCommand
-        => scheduler.ScheduleTellRepeatedly(initialDelay, interval, receiver.Native, message, ActorRefs.Nobody);
+            ICanTell<TCommand> receiver, TCommand command)
+        where TCommand : FrameworkMessages.ActorCommand
+        => scheduler.ScheduleTellRepeatedly(initialDelay, interval, receiver.Native, command, ActorRefs.Nobody);
 
-    public static void ScheduleTellRepeatedly<TMessage>(
+    public static void ScheduleTellRepeatedly<TCommand>(
         this IScheduler scheduler, TimeSpan initialDelay, TimeSpan interval,
-        ICanTell<TMessage> receiver, TMessage message, IActorRef<TMessage>? sender, ICancelable? cancelable = null)
-        where TMessage : FrameworkMessages.ActorCommand
-        => scheduler.ScheduleTellRepeatedly(initialDelay, interval, receiver.Native, message, sender?.Native ?? ActorRefs.Nobody, cancelable);
+        ICanTell<TCommand> receiver, TCommand command, IActorRef<TCommand>? sender, ICancelable? cancelable = null)
+        where TCommand : FrameworkMessages.ActorCommand
+        => scheduler.ScheduleTellRepeatedly(initialDelay, interval, receiver.Native, command, sender?.Native ?? ActorRefs.Nobody, cancelable);
 
-    public static ICancelable ScheduleTellOnceCancelable<TMessage>(
+    public static ICancelable ScheduleTellOnceCancelable<TCommand>(
         this IScheduler scheduler, TimeSpan initialDelay,
-            ICanTell<TMessage> receiver, TMessage message)
-        where TMessage : FrameworkMessages.ActorCommand
-        => scheduler.ScheduleTellOnceCancelable(initialDelay, receiver.Native, message, ActorRefs.Nobody);
+            ICanTell<TCommand> receiver, TCommand command)
+        where TCommand : FrameworkMessages.ActorCommand
+        => scheduler.ScheduleTellOnceCancelable(initialDelay, receiver.Native, command, ActorRefs.Nobody);
 
-    public static void ScheduleTellOnce<TMessage>(
+    public static void ScheduleTellOnce<TCommand>(
         this IScheduler scheduler, TimeSpan initialDelay,
-            ICanTell<TMessage> receiver, TMessage message)
-        where TMessage : FrameworkMessages.ActorCommand
-        => scheduler.ScheduleTellOnce(initialDelay, receiver.Native, message, ActorRefs.Nobody);
+            ICanTell<TCommand> receiver, TCommand command)
+        where TCommand : FrameworkMessages.ActorCommand
+        => scheduler.ScheduleTellOnce(initialDelay, receiver.Native, command, ActorRefs.Nobody);
 
 }

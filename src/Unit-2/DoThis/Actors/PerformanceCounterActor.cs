@@ -9,7 +9,7 @@ using CargoSupport.Akka.Typed.Messages;
 namespace ChartApp.Actors;
 
 public record PerformanceCounterCommand : FrameworkMessages.ActorCommand;
-public record PerformanceCounterEvent : FrameworkMessages.ActorEventMessage;
+public record PerformanceCounterEvent : FrameworkMessages.ActorEvent;
 internal class PerformanceCounterActor : EventActor<PerformanceCounterCommand, PerformanceCounterEvent>
 {
     private readonly string _seriesName;

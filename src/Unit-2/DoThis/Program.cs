@@ -9,7 +9,7 @@ namespace ChartApp;
 
 public record TestCommand : FrameworkMessages.ActorCommand;
 
-public record TestEvent : FrameworkMessages.ActorEventMessage;
+public record TestEvent : FrameworkMessages.ActorEvent;
 
 public record SpecificTestEvent : TestEvent;
 public class TestEventActor : EventActor<TestCommand, TestEvent>

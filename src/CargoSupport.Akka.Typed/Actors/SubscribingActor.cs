@@ -7,9 +7,9 @@ namespace CargoSupport.Akka.Typed.Actors;
 /// <summary>
 /// subscribes to events from other actors. if it doesn't, use <see cref="ReceiveActor{TMessageBase}"/> instead
 /// </summary>
-/// <typeparam name="TMessage"></typeparam>
-public class SubscribingActor<TMessage> : ReceiveActor<TMessage>
-    where TMessage : FrameworkMessages.ActorCommand
+/// <typeparam name="TCommandBase"></typeparam>
+public class SubscribingActor<TCommandBase> : ReceiveActor<TCommandBase>
+    where TCommandBase : FrameworkMessages.ActorCommand
 {
     private readonly SubscriptionManager _subscriptionManager;
 
@@ -22,14 +22,14 @@ public class SubscribingActor<TMessage> : ReceiveActor<TMessage>
     /// <summary>
     /// creates an observable which 
     /// </summary>
-    /// <typeparam name="TEventMessage"></typeparam>
-    /// <typeparam name="TEventMessageBase"></typeparam>
+    /// <typeparam name="TEvent"></typeparam>
+    /// <typeparam name="TEventBase"></typeparam>
     /// <param name="sender"></param>
     /// <param name="filter"></param>
     /// <returns></returns>
-    protected IObservable<TEventMessage> GetEventStream<TEventMessageBase, TEventMessage>(IEventActorRef<TEventMessageBase> sender, Predicate<TEventMessage>? filter = null)
-        where TEventMessageBase : FrameworkMessages.ActorEventMessage
-        where TEventMessage : TEventMessageBase
+    protected IObservable<TEvent> GetEventStream<TEventBase, TEvent>(IEventActorRef<TEventBase> sender, Predicate<TEvent>? filter = null)
+        where TEventBase : FrameworkMessages.ActorEvent
+        where TEvent : TEventBase
         => _subscriptionManager.GetEventStream(sender, UnsafeReceive, () => Sender, filter);
 }
 

@@ -9,22 +9,22 @@ namespace CargoSupport.Akka.Typed.Actors;
 /// sends events
 /// does not receive events, if it does, use <see cref="SubscribingEventActor{TMessageBase,TEventMessageBase}"/> instead.
 /// </summary>
-/// <typeparam name="TMessageBase"></typeparam>
-/// <typeparam name="TEventMessages"></typeparam>
-public abstract class EventActor<TMessageBase, TEventMessages> : ReceiveActor<TMessageBase>
-    where TMessageBase : FrameworkMessages.ActorCommand
-    where TEventMessages : FrameworkMessages.ActorEventMessage
+/// <typeparam name="TCommandBase"></typeparam>
+/// <typeparam name="TEventBase"></typeparam>
+public abstract class EventActor<TCommandBase, TEventBase> : ReceiveActor<TCommandBase>
+    where TCommandBase : FrameworkMessages.ActorCommand
+    where TEventBase : FrameworkMessages.ActorEvent
 {
     private readonly Dictionary<Type, HashSet<IActorRef>> _subscriptions = new();
 
     protected void ReceiveEvent<TEvent>(Action<TEvent> handler)
-        where TEvent : FrameworkMessages.ActorEventMessage
+        where TEvent : FrameworkMessages.ActorEvent
         => UnsafeReceive(handler);
     protected void ReceiveEvent<TEvent>(Predicate<TEvent> predicate, Action<TEvent> handler)
-        where TEvent : FrameworkMessages.ActorEventMessage
+        where TEvent : FrameworkMessages.ActorEvent
         => UnsafeReceive(predicate, handler);
     protected void ReceiveEvent<TEvent>(Func<TEvent, bool> handler)
-        where TEvent : FrameworkMessages.ActorEventMessage
+        where TEvent : FrameworkMessages.ActorEvent
         => UnsafeReceive(handler);
     protected EventActor()
     {
@@ -48,7 +48,7 @@ public abstract class EventActor<TMessageBase, TEventMessages> : ReceiveActor<TM
     }
 
     protected void PublishEvent<TEvent>(TEvent eventMessage)
-        where TEvent : TEventMessages
+        where TEvent : TEventBase
     {
         var subs = _subscriptions.GetValueOrDefault(eventMessage.GetType());
         if (subs is null)

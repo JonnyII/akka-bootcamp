@@ -11,9 +11,9 @@ namespace CargoSupport.Akka.Typed.Actors;
 /// <summary>
 /// receives requests from other actors
 /// </summary>
-/// <typeparam name="TMessageBase"></typeparam>
-public abstract class ReceiveActor<TMessageBase> : ReceiveActor, IActor<TMessageBase>
-    where TMessageBase : FrameworkMessages.ActorCommand
+/// <typeparam name="TCommandBase"></typeparam>
+public abstract class ReceiveActor<TCommandBase> : ReceiveActor, IActor<TCommandBase>
+    where TCommandBase : FrameworkMessages.ActorCommand
 {
     private readonly ActorReceiverFallbackMode _receiverFallbackMode;
 
@@ -26,7 +26,7 @@ public abstract class ReceiveActor<TMessageBase> : ReceiveActor, IActor<TMessage
     /// <param name="filter"></param>
     /// <param name="action"></param>
     protected new void Receive<T>(Predicate<T> filter, Action<T> action)
-        where T : TMessageBase
+        where T : TCommandBase
         => base.Receive(filter, action);
 
     internal void UnsafeReceive<T>(Predicate<T> filter, Action<T> action)
@@ -42,7 +42,7 @@ public abstract class ReceiveActor<TMessageBase> : ReceiveActor, IActor<TMessage
     /// <typeparam name="T"></typeparam>
     /// <param name="action"></param>
     protected new void Receive<T>(Func<T, bool> action)
-        where T : TMessageBase
+        where T : TCommandBase
         => base.Receive(action);
 
     /// <summary>
@@ -51,10 +51,10 @@ public abstract class ReceiveActor<TMessageBase> : ReceiveActor, IActor<TMessage
     /// <typeparam name="T"></typeparam>
     /// <param name="action"></param>
     protected void Receive<T>(Action<T> action)
-        where T : TMessageBase
+        where T : TCommandBase
         => base.Receive(action);
     protected void Receive<T>(Action action)
-        where T : TMessageBase
+        where T : TCommandBase
         => base.Receive<T>(_ => action());
 
 
@@ -80,7 +80,7 @@ public abstract class ReceiveActor<TMessageBase> : ReceiveActor, IActor<TMessage
     [Obsolete($"filter first, than take action. (use the other overload with switched parameter order)")]
     [EditorBrowsable(EditorBrowsableState.Never)]
     protected new void Receive<T>(Action<T> action, Predicate<T> filter)
-        where T : TMessageBase
+        where T : TCommandBase
         => base.Receive(action, filter);
 
     [Obsolete($"use {nameof(Receive)} instead")]
@@ -94,7 +94,7 @@ public abstract class ReceiveActor<TMessageBase> : ReceiveActor, IActor<TMessage
     #region ReceiveAsync
 
     protected new void ReceiveAsync<T>(Predicate<T> filter, Func<T, Task> action)
-        where T : TMessageBase
+        where T : TCommandBase
         => base.ReceiveAsync(filter, action);
 
     #region deprecated
@@ -111,12 +111,12 @@ public abstract class ReceiveActor<TMessageBase> : ReceiveActor, IActor<TMessage
     {
         _receiverFallbackMode = receiverFallbackMode;
     }
-    protected new IActorRef<TMessageBase> Self => base.Self.Receives<TMessageBase>();
-    private void Receiver(object rawMessage, Action<TMessageBase> handler, Action<IMultiActorMessage>? genericReceiver)
+    protected new IActorRef<TCommandBase> Self => base.Self.Receives<TCommandBase>();
+    private void Receiver(object rawMessage, Action<TCommandBase> handler, Action<IMultiActorMessage>? genericReceiver)
     {
         switch (rawMessage)
         {
-            case TMessageBase typedMessage:
+            case TCommandBase typedMessage:
                 handler(typedMessage);
                 return;
             case IMultiActorMessage genericMessage when genericReceiver is not null:
@@ -134,10 +134,10 @@ public abstract class ReceiveActor<TMessageBase> : ReceiveActor, IActor<TMessage
                 throw new ArgumentOutOfRangeException();
         }
     }
-    public void Become(Action<TMessageBase> newReceiver, Action<IMultiActorMessage>? genericReceiver = null)
+    public void Become(Action<TCommandBase> newReceiver, Action<IMultiActorMessage>? genericReceiver = null)
         => base.Become(rawMessage => Receiver(rawMessage, newReceiver, genericReceiver));
 
-    public void BecomeStacked(Action<TMessageBase> newReceiver, Action<IMultiActorMessage>? genericReceiver = null)
+    public void BecomeStacked(Action<TCommandBase> newReceiver, Action<IMultiActorMessage>? genericReceiver = null)
         => base.Become(rawMessage => Receiver(rawMessage, newReceiver, genericReceiver));
 
 }

@@ -8,10 +8,10 @@ namespace CargoSupport.Akka.Typed.Actors;
 /// subscribes to events from other actors, if it doesn't, use <see cref="EventActor{TMessageBase,TEventMessages}"/> instead.
 /// emits events if it doesn't, use <see cref="SubscribingActor{TMessage}"/> instead
 /// </summary>
-public class SubscribingEventActor<TMessageBase, TEventMessageBase>
-    : EventActor<TMessageBase, TEventMessageBase>
-    where TMessageBase : FrameworkMessages.ActorCommand
-    where TEventMessageBase : FrameworkMessages.ActorEventMessage
+public class SubscribingEventActor<TCommandBase, TEventBase>
+    : EventActor<TCommandBase, TEventBase>
+    where TCommandBase : FrameworkMessages.ActorCommand
+    where TEventBase : FrameworkMessages.ActorEvent
 {
     private readonly SubscriptionManager _subscriptionManager;
 
@@ -23,11 +23,11 @@ public class SubscribingEventActor<TMessageBase, TEventMessageBase>
     /// <summary>
     /// creates an observable which 
     /// </summary>
-    /// <typeparam name="TEventMessage"></typeparam>
+    /// <typeparam name="TEvent"></typeparam>
     /// <param name="sender"></param>
     /// <returns></returns>
-    protected IObservable<TEventMessage> GetEventStream<TEventMessage>(IEventActorRef<TEventMessage> sender)
-        where TEventMessage : FrameworkMessages.ActorEventMessage
+    protected IObservable<TEvent> GetEventStream<TEvent>(IEventActorRef<TEvent> sender)
+        where TEvent : TEventBase
         => _subscriptionManager.GetEventStream(sender, UnsafeReceive, () => Sender);
 
 }
