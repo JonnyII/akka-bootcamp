@@ -1,7 +1,8 @@
 ﻿using Akka.Actor;
 using Akka.Util.Internal;
 
-using CargoSupport.Akka.Typed;
+using CargoSupport.Akka.Typed.ActorRef;
+using CargoSupport.Akka.Typed.Messages;
 
 using ChartApp.Actors;
 

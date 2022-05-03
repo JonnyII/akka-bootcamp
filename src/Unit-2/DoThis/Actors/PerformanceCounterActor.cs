@@ -2,7 +2,9 @@
 
 using Akka.Actor;
 
-using CargoSupport.Akka.Typed;
+using CargoSupport.Akka.Typed.Actors;
+using CargoSupport.Akka.Typed.Helper;
+using CargoSupport.Akka.Typed.Messages;
 
 namespace ChartApp.Actors;
 

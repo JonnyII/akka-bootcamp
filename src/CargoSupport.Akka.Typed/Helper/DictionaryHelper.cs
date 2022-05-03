@@ -1,4 +1,4 @@
-﻿namespace CargoSupport.Akka.Typed;
+﻿namespace CargoSupport.Akka.Typed.Helper;
 
 public static class DictionaryHelper
 {

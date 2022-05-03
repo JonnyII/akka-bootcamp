@@ -1,4 +1,4 @@
-﻿namespace CargoSupport.Akka.Typed;
+﻿namespace CargoSupport.Akka.Typed.Messages;
 
 /// <summary>
 /// a message which is not designated to a single actor.<br/>

@@ -4,7 +4,10 @@ using System.Reactive.Subjects;
 
 using Akka.Actor;
 
-namespace CargoSupport.Akka.Typed;
+using CargoSupport.Akka.Typed.ActorRef;
+using CargoSupport.Akka.Typed.Messages;
+
+namespace CargoSupport.Akka.Typed.Actors.CompositionComponents;
 
 /// <summary>
 /// handles event subscription logic for actors

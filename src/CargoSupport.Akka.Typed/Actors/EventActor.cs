@@ -1,6 +1,9 @@
 ﻿using Akka.Actor;
 
-namespace CargoSupport.Akka.Typed;
+using CargoSupport.Akka.Typed.Helper;
+using CargoSupport.Akka.Typed.Messages;
+
+namespace CargoSupport.Akka.Typed.Actors;
 
 /// <summary>
 /// sends events

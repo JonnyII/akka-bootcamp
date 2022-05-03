@@ -4,7 +4,11 @@ using System.Reactive.Disposables;
 using Akka.Actor;
 using Akka.Util;
 
-namespace CargoSupport.Akka.Typed;
+using CargoSupport.Akka.Typed.Actors;
+using CargoSupport.Akka.Typed.Helper;
+using CargoSupport.Akka.Typed.Messages;
+
+namespace CargoSupport.Akka.Typed.ActorRef;
 
 public interface ICanTell<TMessage>
     where TMessage : FrameworkMessages.ActorCommand

@@ -1,8 +1,7 @@
 ﻿using System.Linq.Expressions;
-
 using Akka.Actor;
 
-namespace CargoSupport.Akka.Typed;
+namespace CargoSupport.Akka.Typed.Actors;
 
 public class TypedProps
 {

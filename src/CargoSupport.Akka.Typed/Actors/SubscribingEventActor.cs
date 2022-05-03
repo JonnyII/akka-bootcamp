@@ -1,4 +1,8 @@
-﻿namespace CargoSupport.Akka.Typed;
+﻿using CargoSupport.Akka.Typed.ActorRef;
+using CargoSupport.Akka.Typed.Actors.CompositionComponents;
+using CargoSupport.Akka.Typed.Messages;
+
+namespace CargoSupport.Akka.Typed.Actors;
 
 /// <summary>
 /// subscribes to events from other actors, if it doesn't, use <see cref="EventActor{TMessageBase,TEventMessages}"/> instead.

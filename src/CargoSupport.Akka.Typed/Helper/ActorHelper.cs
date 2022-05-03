@@ -1,6 +1,9 @@
 ﻿using Akka.Actor;
 
-namespace CargoSupport.Akka.Typed;
+using CargoSupport.Akka.Typed.ActorRef;
+using CargoSupport.Akka.Typed.Messages;
+
+namespace CargoSupport.Akka.Typed.Helper;
 
 
 public static class ActorHelper

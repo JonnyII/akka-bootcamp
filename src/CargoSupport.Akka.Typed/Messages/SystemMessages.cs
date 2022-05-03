@@ -1,6 +1,6 @@
 ﻿using NativePoisonPill = Akka.Actor.PoisonPill;
 
-namespace CargoSupport.Akka.Typed;
+namespace CargoSupport.Akka.Typed.Messages;
 public static class SystemMessages
 {
     public abstract record SystemMessage
