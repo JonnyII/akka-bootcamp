@@ -8,14 +8,14 @@ using CargoSupport.Akka.Typed.Messages;
 namespace CargoSupport.Akka.Typed.ActorRef;
 
 public interface ICanTell<TCommand>
-    where TCommand : FrameworkMessages.ActorCommand
+    where TCommand : FrameworkMessages.Command
 {
     void Tell(TCommand command, IActorRef<TCommand>? sender = null);
     internal ICanTell Native { get; }
 }
 
 public interface IActorRef<TCommandBase> : ICanTell<TCommandBase>, IPathActor
-    where TCommandBase : FrameworkMessages.ActorCommand
+    where TCommandBase : FrameworkMessages.Command
 {
     ISurrogate ToSurrogate(ActorSystem system);
     ICanTell ICanTell<TCommandBase>.Native => Native;
@@ -29,7 +29,7 @@ public interface IPathActor
     ActorPath Path { get; }
 }
 internal class ActorRefWrapper<TCommandBase> : IActorRef<TCommandBase>
-    where TCommandBase : FrameworkMessages.ActorCommand
+    where TCommandBase : FrameworkMessages.Command
 {
     protected readonly IActorRef Source;
     IActorRef IActorRef<TCommandBase>.Native => Source;
@@ -65,7 +65,7 @@ internal class ActorRefWrapper<TCommandBase> : IActorRef<TCommandBase>
 
 
 public interface IActorSelection<TCommandBase> : ICanTell<TCommandBase>
-    where TCommandBase : FrameworkMessages.ActorCommand
+    where TCommandBase : FrameworkMessages.Command
 {
     IActorRef<TCommandBase> Anchor { get; }
     SelectionPathElement[] Path { get; }
@@ -74,7 +74,7 @@ public interface IActorSelection<TCommandBase> : ICanTell<TCommandBase>
 }
 
 public class ActorSelectionWrapper<TComamndBase> : IActorSelection<TComamndBase>
-    where TComamndBase : FrameworkMessages.ActorCommand
+    where TComamndBase : FrameworkMessages.Command
 {
     private readonly ActorSelection _actorSelection;
 
@@ -98,7 +98,7 @@ public class ActorSelectionWrapper<TComamndBase> : IActorSelection<TComamndBase>
 }
 
 public interface IEventActorRef<in TEventBase> : IPathActor
-    where TEventBase : FrameworkMessages.ActorEvent
+    where TEventBase : FrameworkMessages.Event
 {
     /// <summary>
     /// subscribes the current actor to the event stream of this actorRef
@@ -111,14 +111,14 @@ public interface IEventActorRef<in TEventBase> : IPathActor
         where TEvent : TEventBase;
 }
 public interface IEventActorRef<TCommandBase, in TEventBase> : IActorRef<TCommandBase>, IEventActorRef<TEventBase>
-    where TCommandBase : FrameworkMessages.ActorCommand
-    where TEventBase : FrameworkMessages.ActorEvent
+    where TCommandBase : FrameworkMessages.Command
+    where TEventBase : FrameworkMessages.Event
 {
 }
 
 internal class EventActorRefWrapper<TCommandBase, TEventBase> : ActorRefWrapper<TCommandBase>, IEventActorRef<TCommandBase, TEventBase>
-    where TCommandBase : FrameworkMessages.ActorCommand
-    where TEventBase : FrameworkMessages.ActorEvent
+    where TCommandBase : FrameworkMessages.Command
+    where TEventBase : FrameworkMessages.Event
 {
     internal EventActorRefWrapper(IActorRef source) : base(source)
     {

@@ -10,8 +10,8 @@ namespace CargoSupport.Akka.Typed.Actors;
 /// </summary>
 public class SubscribingEventActor<TCommandBase, TEventBase>
     : EventActor<TCommandBase, TEventBase>
-    where TCommandBase : FrameworkMessages.ActorCommand
-    where TEventBase : FrameworkMessages.ActorEvent
+    where TCommandBase : FrameworkMessages.Command
+    where TEventBase : FrameworkMessages.Event
 {
     private readonly SubscriptionManager _subscriptionManager;
 

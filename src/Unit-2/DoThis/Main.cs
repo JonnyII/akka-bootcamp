@@ -21,7 +21,7 @@ namespace ChartApp
     public record UnsubscribeCounter(CounterType Counter, IActorRef Subscriber) : TutorialSubscriptionMessage;
     public partial class Main : Form
     {
-        private IActorRef<ChartingCommand>? _chartActor;
+        private IActorRef<Charting.Commands>? _chartActor;
         private readonly AtomicCounter _seriesCounter = new(1);
 
         public Main()
@@ -34,9 +34,9 @@ namespace ChartApp
 
         private void Main_Load(object sender, EventArgs e)
         {
-            _chartActor = Program.ChartActors.ActorOf<ChartingActor, ChartingCommand>(() => new(sysChart), "charting");
+            _chartActor = Program.ChartActors.ActorOf<Charting.Actor, Charting.Commands>(() => new(sysChart), "charting");
             var series = ChartDataHelper.RandomSeries("FakeSeries" + _seriesCounter.GetAndIncrement());
-            _chartActor.Tell(new ChartingActor.Messages.InitializeChart(new()
+            _chartActor.Tell(new Charting.Commands.InitializeChart(new()
             {
                 { series.Name, series }
             }));

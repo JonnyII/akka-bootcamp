@@ -1,66 +1,66 @@
-﻿using System.Diagnostics;
-
+﻿
 using Akka.Actor;
 
 using CargoSupport.Akka.Typed.Actors;
 using CargoSupport.Akka.Typed.Helper;
 using CargoSupport.Akka.Typed.Messages;
 
+using SysPerformanceCounter = System.Diagnostics.PerformanceCounter;
+
 namespace ChartApp.Actors;
-
-public record PerformanceCounterCommand : FrameworkMessages.ActorCommand;
-public record PerformanceCounterEvent : FrameworkMessages.ActorEvent;
-internal class PerformanceCounterActor : EventActor<PerformanceCounterCommand, PerformanceCounterEvent>
+public static class PerformanceCounter
 {
-    private readonly string _seriesName;
-    private readonly Func<PerformanceCounter> _performanceCounterGenerator;
-    private PerformanceCounter? _counter;
-
-    private readonly HashSet<IActorRef> _subscriptions = new();
-    private readonly ICancelable _cancelPublishing = new Cancelable(Context.System.Scheduler);
-
-    public static class Messages
+    public abstract record Commands : FrameworkMessages.Command
     {
-        public record GatherMetrics : PerformanceCounterCommand;
+        public record GatherMetrics : Commands;
     }
 
-    public static class Events
+    public abstract record Events : FrameworkMessages.Event
     {
-        public record MetricUpdate(string Series, float CounterValue) : PerformanceCounterEvent;
+        public record MetricUpdate(string Series, float CounterValue) : Events;
     }
 
-    public PerformanceCounterActor(string seriesName, Func<PerformanceCounter> performanceCounterGenerator)
+    internal class Actor : EventActor<Commands, Events>
     {
-        _seriesName = seriesName;
-        _performanceCounterGenerator = performanceCounterGenerator;
+        private readonly Func<SysPerformanceCounter> _performanceCounterGenerator;
+        private SysPerformanceCounter? _counter;
 
-        this.Receive<Messages.GatherMetrics>(
-            () => PublishEvent(new Events.MetricUpdate(_seriesName, _counter!.NextValue())));
-    }
+        private readonly HashSet<IActorRef> _subscriptions = new();
+        private readonly ICancelable _cancelPublishing = new Cancelable(Context.System.Scheduler);
 
-    protected override void PreStart()
-    {
-        _counter = _performanceCounterGenerator();
-        Context.System.Scheduler.ScheduleTellRepeatedly(
-            TimeSpan.FromMilliseconds(250),
-            TimeSpan.FromMilliseconds(250),
-            Self,
-            new Messages.GatherMetrics(),
-            Self,
-            _cancelPublishing
-        );
-    }
 
-    protected override void PostStop()
-    {
-        try
+        public Actor(string seriesName, Func<SysPerformanceCounter> performanceCounterGenerator)
         {
-            _cancelPublishing.Cancel(false);
-            _counter?.Dispose();
+            _performanceCounterGenerator = performanceCounterGenerator;
+
+            this.Receive<Commands.GatherMetrics>(
+                () => PublishEvent(new Events.MetricUpdate(seriesName, _counter!.NextValue())));
         }
-        finally
+
+        protected override void PreStart()
         {
-            base.PostStop();
+            _counter = _performanceCounterGenerator();
+            Context.System.Scheduler.ScheduleTellRepeatedly(
+                TimeSpan.FromMilliseconds(250),
+                TimeSpan.FromMilliseconds(250),
+                Self,
+                new Commands.GatherMetrics(),
+                Self,
+                _cancelPublishing
+            );
+        }
+
+        protected override void PostStop()
+        {
+            try
+            {
+                _cancelPublishing.Cancel(false);
+                _counter?.Dispose();
+            }
+            finally
+            {
+                base.PostStop();
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ namespace CargoSupport.Akka.Typed.Actors;
 /// </summary>
 /// <typeparam name="TCommandBase"></typeparam>
 public abstract class ReceiveActor<TCommandBase> : ReceiveActor, IActor<TCommandBase>
-    where TCommandBase : FrameworkMessages.ActorCommand
+    where TCommandBase : FrameworkMessages.Command
 {
     private readonly ActorReceiverFallbackMode _receiverFallbackMode;
 

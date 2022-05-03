@@ -38,7 +38,7 @@ internal class SubscriptionManager : IDisposable
         Action<Predicate<TEvent>, Action<TEvent>> addReceiveHandler,
         Func<IActorRef> getSender,
         Predicate<TEvent>? filter = null)
-        where TEvent : FrameworkMessages.ActorEvent
+        where TEvent : FrameworkMessages.Event
         => Observable.Create((IObserver<TEvent> observer) =>
             {
                 addReceiveHandler(

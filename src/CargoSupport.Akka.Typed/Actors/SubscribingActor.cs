@@ -9,7 +9,7 @@ namespace CargoSupport.Akka.Typed.Actors;
 /// </summary>
 /// <typeparam name="TCommandBase"></typeparam>
 public class SubscribingActor<TCommandBase> : ReceiveActor<TCommandBase>
-    where TCommandBase : FrameworkMessages.ActorCommand
+    where TCommandBase : FrameworkMessages.Command
 {
     private readonly SubscriptionManager _subscriptionManager;
 
@@ -28,7 +28,7 @@ public class SubscribingActor<TCommandBase> : ReceiveActor<TCommandBase>
     /// <param name="filter"></param>
     /// <returns></returns>
     protected IObservable<TEvent> GetEventStream<TEventBase, TEvent>(IEventActorRef<TEventBase> sender, Predicate<TEvent>? filter = null)
-        where TEventBase : FrameworkMessages.ActorEvent
+        where TEventBase : FrameworkMessages.Event
         where TEvent : TEventBase
         => _subscriptionManager.GetEventStream(sender, UnsafeReceive, () => Sender, filter);
 }

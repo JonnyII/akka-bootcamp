@@ -12,23 +12,23 @@ namespace CargoSupport.Akka.Typed.Actors;
 /// <typeparam name="TCommandBase"></typeparam>
 /// <typeparam name="TEventBase"></typeparam>
 public abstract class EventActor<TCommandBase, TEventBase> : ReceiveActor<TCommandBase>
-    where TCommandBase : FrameworkMessages.ActorCommand
-    where TEventBase : FrameworkMessages.ActorEvent
+    where TCommandBase : FrameworkMessages.Command
+    where TEventBase : FrameworkMessages.Event
 {
     private readonly Dictionary<Type, HashSet<IActorRef>> _subscriptions = new();
 
     protected void ReceiveEvent<TEvent>(Action<TEvent> handler)
-        where TEvent : FrameworkMessages.ActorEvent
+        where TEvent : FrameworkMessages.Event
         => UnsafeReceive(handler);
     protected void ReceiveEvent<TEvent>(Predicate<TEvent> predicate, Action<TEvent> handler)
-        where TEvent : FrameworkMessages.ActorEvent
+        where TEvent : FrameworkMessages.Event
         => UnsafeReceive(predicate, handler);
     protected void ReceiveEvent<TEvent>(Func<TEvent, bool> handler)
-        where TEvent : FrameworkMessages.ActorEvent
+        where TEvent : FrameworkMessages.Event
         => UnsafeReceive(handler);
     protected EventActor()
     {
-        this.UnsafeReceive<FrameworkMessages.SubscriptionMessage>(
+        this.UnsafeReceive<FrameworkMessages.SubscriptionUpdate>(
             msg =>
             {
                 var subs = _subscriptions.GetOrAdd(msg.MessageType);

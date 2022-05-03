@@ -6,14 +6,14 @@ using CargoSupport.Akka.Typed.Messages;
 using DevExpress.XtraCharts;
 
 namespace ChartApp.Actors;
-public record ChartingCommand : FrameworkMessages.ActorCommand { }
-public class ChartingActor : ReceiveActor<ChartingCommand>
+public static class Charting
 {
-    public class Messages
+    public abstract record Commands : FrameworkMessages.Command
     {
-        public record InitializeChart(Dictionary<string, Series>? InitialSeries) : ChartingCommand;
 
-        public record AddSeries : ChartingCommand
+        public record InitializeChart(Dictionary<string, Series>? InitialSeries) : Commands;
+
+        public record AddSeries : Commands
         {
             public AddSeries(Series series)
             {
@@ -31,49 +31,57 @@ public class ChartingActor : ReceiveActor<ChartingCommand>
         }
     }
 
-    private readonly ChartControl _chart;
-    private Dictionary<string, Series> _seriesIndex;
 
-    public ChartingActor(ChartControl chart) : this(chart, new()) { }
 
-    public ChartingActor(ChartControl chart, Dictionary<string, Series> seriesIndex)
+    public class Actor : ReceiveActor<Commands>
     {
-        _chart = chart;
-        _seriesIndex = seriesIndex;
+        private readonly ChartControl _chart;
+        private Dictionary<string, Series> _seriesIndex;
 
-        Receive<Messages.InitializeChart>(HandleInitialize);
-        Receive<Messages.AddSeries>(HandleAddSeries);
-    }
-
-    #region Individual Message Type Handlers
-
-    private void HandleInitialize(Messages.InitializeChart ic)
-    {
-        if (ic.InitialSeries is not null)
-            //swap the two seriesMessage out
-            _seriesIndex = ic.InitialSeries;
-
-        //delete any existing seriesMessage
-        _chart.Series.Clear();
-
-        //attempt to render the initial chart
-        if (!_seriesIndex.Any())
-            return;
-
-        foreach (var (key, value) in _seriesIndex)
+        public Actor(ChartControl chart) : this(chart, new())
         {
-            //force both the chart and the internal index to use the same names
-            value.Name = key;
-            _chart.Series.Add(value);
         }
-    }
 
-    private void HandleAddSeries(Messages.AddSeries seriesMessage)
-    {
-        if (_seriesIndex.ContainsKey(seriesMessage.Series.Name))
-            return;
-        _seriesIndex.Add(seriesMessage.Series.Name, seriesMessage.Series);
-        _chart.Series.Add(seriesMessage.Series);
+        public Actor(ChartControl chart, Dictionary<string, Series> seriesIndex)
+        {
+            _chart = chart;
+            _seriesIndex = seriesIndex;
+
+            Receive<Commands.InitializeChart>(HandleInitialize);
+            Receive<Commands.AddSeries>(HandleAddSeries);
+        }
+
+        #region Individual Message Type Handlers
+
+        private void HandleInitialize(Commands.InitializeChart ic)
+        {
+            if (ic.InitialSeries is not null)
+                //swap the two seriesMessage out
+                _seriesIndex = ic.InitialSeries;
+
+            //delete any existing seriesMessage
+            _chart.Series.Clear();
+
+            //attempt to render the initial chart
+            if (!_seriesIndex.Any())
+                return;
+
+            foreach (var (key, value) in _seriesIndex)
+            {
+                //force both the chart and the internal index to use the same names
+                value.Name = key;
+                _chart.Series.Add(value);
+            }
+        }
+
+        private void HandleAddSeries(Commands.AddSeries seriesMessage)
+        {
+            if (_seriesIndex.ContainsKey(seriesMessage.Series.Name))
+                return;
+            _seriesIndex.Add(seriesMessage.Series.Name, seriesMessage.Series);
+            _chart.Series.Add(seriesMessage.Series);
+        }
+
+        #endregion
     }
-    #endregion
 }

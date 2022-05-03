@@ -1,5 +1,7 @@
 ﻿using System.Linq.Expressions;
+
 using Akka.Actor;
+
 using CargoSupport.Akka.Typed.Actors;
 using CargoSupport.Akka.Typed.Helper;
 using CargoSupport.Akka.Typed.Messages;
@@ -17,47 +19,47 @@ public static class ActorRefHelper
     /// <param name="actor"></param>
     /// <returns></returns>
     public static IActorRef<TCommand> Receives<TCommand>(this IActorRef actor)
-        where TCommand : FrameworkMessages.ActorCommand
+        where TCommand : FrameworkMessages.Command
         => new ActorRefWrapper<TCommand>(actor);
 
     #region ActorOf
     public static IActorRef<TCommand> ActorOf<TActor, TCommand>(this ActorSystem actorSystem, Expression<Func<TActor>> factory, string? name = null)
         where TActor : ActorBase, IActor<TCommand>
-        where TCommand : FrameworkMessages.ActorCommand
+        where TCommand : FrameworkMessages.Command
         => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TCommand>();
 
     public static IActorRef<TCommand> ActorOf<TActor, TCommand>(this IUntypedActorContext actorSystem, Expression<Func<TActor>> factory, string? name = null)
         where TActor : ActorBase, IActor<TCommand>
-        where TCommand : FrameworkMessages.ActorCommand
+        where TCommand : FrameworkMessages.Command
         => actorSystem.ActorOf((Props)TypedProps.Create(factory), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TCommand>();
 
     public static IActorRef<TCommand> ActorOf<TActor, TCommand>(this ActorSystem actorSystem, string? name = null)
         where TActor : ActorBase, IActor<TCommand>, new()
-        where TCommand : FrameworkMessages.ActorCommand
+        where TCommand : FrameworkMessages.Command
         => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TCommand>();
 
     public static IActorRef<TCommand> ActorOf<TActor, TCommand>(this IUntypedActorContext actorSystem, string? name = null)
         where TActor : ActorBase, IActor<TCommand>, new()
-        where TCommand : FrameworkMessages.ActorCommand
+        where TCommand : FrameworkMessages.Command
         => actorSystem.ActorOf((Props)TypedProps.Create<TActor>(), name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TCommand>();
 
     public static IActorRef<TCommand> ActorOf<TActor, TCommand>(this ActorSystem actorSystem, TypedProps<TActor> props, string? name = null)
         where TActor : ActorBase, IActor<TCommand>
-        where TCommand : FrameworkMessages.ActorCommand
+        where TCommand : FrameworkMessages.Command
         => actorSystem.ActorOf((Props)props, name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TCommand>();
 
     public static IActorRef<TCommand> ActorOf<TActor, TCommand>(this IUntypedActorContext actorSystem, TypedProps<TActor> props, string? name = null)
         where TActor : ActorBase, IActor<TCommand>
-        where TCommand : FrameworkMessages.ActorCommand
+        where TCommand : FrameworkMessages.Command
         => actorSystem.ActorOf((Props)props, name ?? ActorHelper.GetDefaultName<TActor>()).Receives<TCommand>();
     #endregion
 
     public static IActorSelection<TCommand> Receives<TCommand>(this ActorSelection selection)
-        where TCommand : FrameworkMessages.ActorCommand
+        where TCommand : FrameworkMessages.Command
         => new ActorSelectionWrapper<TCommand>(selection);
 
     public static IActorSelection<TCommand> ActorSelection<TCommand>(
         this IUntypedActorContext actorSystem, string path)
-        where TCommand : FrameworkMessages.ActorCommand
+        where TCommand : FrameworkMessages.Command
         => actorSystem.ActorSelection(path).Receives<TCommand>();
 }
