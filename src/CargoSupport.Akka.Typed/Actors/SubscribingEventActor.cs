@@ -5,8 +5,9 @@ using CargoSupport.Akka.Typed.Messages;
 namespace CargoSupport.Akka.Typed.Actors;
 
 /// <summary>
-/// subscribes to events from other actors, if it doesn't, use <see cref="EventActor{TMessageBase,TEventMessages}"/> instead.
-/// emits events if it doesn't, use <see cref="SubscribingActor{TMessage}"/> instead
+///     subscribes to events from other actors, if it doesn't, use <see cref="EventActor{TMessageBase,TEventMessages}" />
+///     instead.
+///     emits events if it doesn't, use <see cref="SubscribingActor{TMessage}" /> instead
 /// </summary>
 public class SubscribingEventActor<TCommandBase, TEventBase>
     : EventActor<TCommandBase, TEventBase>
@@ -18,16 +19,17 @@ public class SubscribingEventActor<TCommandBase, TEventBase>
     public SubscribingEventActor()
     {
         _subscriptionManager = new();
-
     }
+
     /// <summary>
-    /// creates an observable which 
+    ///     creates an observable which
     /// </summary>
     /// <typeparam name="TEvent"></typeparam>
     /// <param name="sender"></param>
     /// <returns></returns>
     protected IObservable<TEvent> GetEventStream<TEvent>(IEventActorRef<TEvent> sender)
         where TEvent : TEventBase
-        => _subscriptionManager.GetEventStream(sender, UnsafeReceive, () => Sender);
-
+    {
+        return _subscriptionManager.GetEventStream(sender, UnsafeReceive, () => Sender);
+    }
 }

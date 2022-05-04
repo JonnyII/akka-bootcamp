@@ -6,11 +6,11 @@ using CargoSupport.Akka.Typed.Messages;
 using DevExpress.XtraCharts;
 
 namespace ChartApp.Actors;
+
 public static class Charting
 {
     public abstract record Commands : FrameworkMessages.Command
     {
-
         public record InitializeChart(Dictionary<string, Series>? InitialSeries) : Commands;
 
         public record AddSeries : Commands
@@ -18,20 +18,21 @@ public static class Charting
             public AddSeries(Series series)
             {
                 if (string.IsNullOrWhiteSpace(series.Name))
+                {
                     throw new InvalidMessageException("The seriesMessage name must not be empty.");
-                this.Series = series;
+                }
+
+                Series = series;
             }
 
             public Series Series { get; init; }
 
             public void Deconstruct(out Series series)
             {
-                series = this.Series;
+                series = Series;
             }
         }
     }
-
-
 
     public class Actor : ReceiveActor<Commands>
     {
@@ -56,15 +57,19 @@ public static class Charting
         private void HandleInitialize(Commands.InitializeChart ic)
         {
             if (ic.InitialSeries is not null)
-                //swap the two seriesMessage out
+            //swap the two seriesMessage out
+            {
                 _seriesIndex = ic.InitialSeries;
+            }
 
             //delete any existing seriesMessage
             _chart.Series.Clear();
 
             //attempt to render the initial chart
             if (!_seriesIndex.Any())
+            {
                 return;
+            }
 
             foreach (var (key, value) in _seriesIndex)
             {
@@ -77,7 +82,10 @@ public static class Charting
         private void HandleAddSeries(Commands.AddSeries seriesMessage)
         {
             if (_seriesIndex.ContainsKey(seriesMessage.Series.Name))
+            {
                 return;
+            }
+
             _seriesIndex.Add(seriesMessage.Series.Name, seriesMessage.Series);
             _chart.Series.Add(seriesMessage.Series);
         }

@@ -10,5 +10,10 @@
 		<PackageReference Include="System.Reactive" Version="5.0.0" />
 		<PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Reference Include="DevExpress.Pdf.v21.2.Core">
+	    <HintPath>..\..\..\..\..\Program Files (x86)\DevExpress 21.2\Components\Offline Packages\devexpress.pdf.core\21.2.6\lib\netstandard2.0\DevExpress.Pdf.v21.2.Core.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
 
 </Project>

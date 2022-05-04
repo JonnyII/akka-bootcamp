@@ -5,7 +5,7 @@ using CargoSupport.Akka.Typed.Messages;
 namespace CargoSupport.Akka.Typed.Actors;
 
 /// <summary>
-/// subscribes to events from other actors. if it doesn't, use <see cref="ReceiveActor{TMessageBase}"/> instead
+///     subscribes to events from other actors. if it doesn't, use <see cref="ReceiveActor{TMessageBase}" /> instead
 /// </summary>
 /// <typeparam name="TCommandBase"></typeparam>
 public class SubscribingActor<TCommandBase> : ReceiveActor<TCommandBase>
@@ -16,26 +16,28 @@ public class SubscribingActor<TCommandBase> : ReceiveActor<TCommandBase>
     public SubscribingActor()
     {
         _subscriptionManager = new();
-
     }
 
     /// <summary>
-    /// creates an observable which 
+    ///     creates an observable which
     /// </summary>
     /// <typeparam name="TEvent"></typeparam>
     /// <typeparam name="TEventBase"></typeparam>
     /// <param name="sender"></param>
     /// <param name="filter"></param>
     /// <returns></returns>
-    protected IObservable<TEvent> GetEventStream<TEventBase, TEvent>(IEventActorRef<TEventBase> sender, Predicate<TEvent>? filter = null)
+    protected IObservable<TEvent> GetEventStream<TEventBase, TEvent>(IEventActorRef<TEventBase> sender,
+        Predicate<TEvent>? filter = null)
         where TEventBase : FrameworkMessages.Event
         where TEvent : TEventBase
-        => _subscriptionManager.GetEventStream(sender, UnsafeReceive, () => Sender, filter);
+    {
+        return _subscriptionManager.GetEventStream(sender, UnsafeReceive, () => Sender, filter);
+    }
 }
 
 /*
  * event nutzen pub/sub pattern
- *                              Receives Requests  |  emits events  | subscribes to events
+ *                              HasType Requests  |  emits events  | subscribes to events
  * Receive Actor                    X              |                |    
  * Event Actor                      X              |      X         |     
  * Subscribing Actor                X              |                |     X

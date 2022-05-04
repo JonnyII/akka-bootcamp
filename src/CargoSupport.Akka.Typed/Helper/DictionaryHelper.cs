@@ -16,5 +16,7 @@ public static class DictionaryHelper
 
     public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
         where TValue : new()
-        => dictionary.GetOrAdd(key, () => new());
+    {
+        return dictionary.GetOrAdd(key, () => new());
+    }
 }

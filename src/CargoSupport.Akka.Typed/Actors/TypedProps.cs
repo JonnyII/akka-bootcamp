@@ -5,12 +5,18 @@ namespace CargoSupport.Akka.Typed.Actors;
 
 public class TypedProps
 {
-    public static TypedProps<TActor> Create<TActor>(Expression<Func<TActor>> factory, SupervisorStrategy? supervisorStrategy = null)
+    public static TypedProps<TActor> Create<TActor>(Expression<Func<TActor>> factory,
+        SupervisorStrategy? supervisorStrategy = null)
         where TActor : ActorBase
-        => new(Props.Create(factory, supervisorStrategy));
+    {
+        return new(Props.Create(factory, supervisorStrategy));
+    }
+
     public static TypedProps<TActor> Create<TActor>(SupervisorStrategy? supervisorStrategy = null)
         where TActor : ActorBase, new()
-        => new(Props.Create(() => new TActor(), supervisorStrategy));
+    {
+        return new(Props.Create(() => new TActor(), supervisorStrategy));
+    }
 }
 
 public class TypedProps<TActor>
@@ -24,5 +30,7 @@ public class TypedProps<TActor>
     }
 
     public static explicit operator Props(TypedProps<TActor> props)
-        => props._source;
+    {
+        return props._source;
+    }
 }
