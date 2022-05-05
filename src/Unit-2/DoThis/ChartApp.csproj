@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\CargoSupport.Akka.Typed\CargoSupport.Akka.Typed.csproj" />
+    <ProjectReference Include="..\..\..\..\Full Stack\TsAluminiumDDD\TsAluminium.Backend\CargoSupport.DomainDriver\CargoSupport.DomainDriver.csproj" />
   </ItemGroup>
 
 </Project>

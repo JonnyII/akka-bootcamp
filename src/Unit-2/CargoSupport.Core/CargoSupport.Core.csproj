@@ -6,4 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Akka.DependencyInjection" Version="1.4.37" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Full Stack\TsAluminiumDDD\TsAluminium.Backend\CargoSupport.DomainDriver\CargoSupport.DomainDriver.csproj" />
+  </ItemGroup>
+
 </Project>

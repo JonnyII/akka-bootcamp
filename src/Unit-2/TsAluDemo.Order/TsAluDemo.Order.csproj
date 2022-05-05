@@ -11,7 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\CargoSupport.Akka.Typed\CargoSupport.Akka.Typed.csproj" />
+    <PackageReference Include="Akka.DependencyInjection" Version="1.4.37" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Full Stack\TsAluminiumDDD\TsAluminium.Backend\CargoSupport.DomainDriver\CargoSupport.DomainDriver.csproj" />
     <ProjectReference Include="..\CargoSupport.Core\CargoSupport.Core.csproj" />
     <ProjectReference Include="..\TsAluDemo.MasterData\TsAluDemo.MasterData.csproj" />
   </ItemGroup>
