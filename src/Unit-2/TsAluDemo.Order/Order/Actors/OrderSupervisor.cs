@@ -1,5 +1,4 @@
-﻿using CargoSupport.Akka.Typed.Actors;
-using CargoSupport.Akka.Typed.Messages;
+﻿using CargoSupport.DomainDriver.Akka.Messages;
 
 namespace TsAluDemo.Order.Order.Actors;
 

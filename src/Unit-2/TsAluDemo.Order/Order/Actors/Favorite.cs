@@ -1,6 +1,4 @@
-﻿using CargoSupport.Akka.Typed.Actors;
-
-namespace TsAluDemo.Order.Order.Actors;
+﻿namespace TsAluDemo.Order.Order.Actors;
 
 internal class Favorite
 {

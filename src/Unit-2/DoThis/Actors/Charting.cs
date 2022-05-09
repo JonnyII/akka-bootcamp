@@ -1,7 +1,7 @@
 ﻿using Akka.Actor;
 
-using CargoSupport.Akka.Typed.Actors;
-using CargoSupport.Akka.Typed.Messages;
+using CargoSupport.DomainDriver.Akka.Actors;
+using CargoSupport.DomainDriver.Akka.Messages;
 
 using DevExpress.XtraCharts;
 

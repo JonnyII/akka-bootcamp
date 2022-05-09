@@ -1,9 +1,8 @@
 ﻿using Akka.Actor;
 
-using CargoSupport.Akka.Typed.ActorRef;
-using CargoSupport.Akka.Typed.Actors;
-using CargoSupport.Akka.Typed.Helper;
-using CargoSupport.Akka.Typed.Messages;
+using CargoSupport.DomainDriver.Akka.ActorRef;
+using CargoSupport.DomainDriver.Akka.Helper;
+using CargoSupport.DomainDriver.Akka.Messages;
 
 using SysPerformanceCounter = System.Diagnostics.PerformanceCounter;
 
