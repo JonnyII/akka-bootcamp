@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
+
 using Akka.Actor;
 using Akka.Util.Internal;
+
 using ChartApp.Actors;
 
 namespace ChartApp
@@ -11,7 +11,7 @@ namespace ChartApp
     public partial class Main : Form
     {
         private IActorRef _chartActor;
-        private readonly AtomicCounter _seriesCounter = new AtomicCounter(1);
+        private readonly AtomicCounter _seriesCounter = new(1);
 
         public Main()
         {
@@ -25,9 +25,9 @@ namespace ChartApp
         {
             _chartActor = Program.ChartActors.ActorOf(Props.Create(() => new ChartingActor(sysChart)), "charting");
             var series = ChartDataHelper.RandomSeries("FakeSeries" + _seriesCounter.GetAndIncrement());
-            _chartActor.Tell(new ChartingActor.InitializeChart(new Dictionary<string, Series>()
+            _chartActor.Tell(new ChartingActor.InitializeChart(new()
             {
-                {series.Name, series}
+                { series.Name, series }
             }));
         }
 
@@ -41,5 +41,12 @@ namespace ChartApp
         }
 
         #endregion
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            _chartActor.Tell(new ChartingActor.AddSeries(
+                ChartDataHelper.RandomSeries("FakeSeries" + _seriesCounter.GetAndIncrement())
+                ));
+        }
     }
 }

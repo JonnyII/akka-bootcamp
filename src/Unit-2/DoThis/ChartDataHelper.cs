@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
-using System.Windows.Forms.DataVisualization.Charting;
+
 using Akka.Util;
+
+using DevExpress.XtraCharts;
 
 namespace ChartApp
 {
@@ -10,15 +12,14 @@ namespace ChartApp
     /// </summary>
     public static class ChartDataHelper
     {
-        public static Series RandomSeries(string seriesName, SeriesChartType type = SeriesChartType.Line, int points = 100)
+        public static Series RandomSeries(string seriesName, ViewType type = ViewType.Line, int points = 100)
         {
-            var series = new Series(seriesName) {ChartType = type};
+            var series = new Series(seriesName, type);
             foreach (var i in Enumerable.Range(0, points))
             {
                 var rng = ThreadLocalRandom.Current.NextDouble();
-                series.Points.Add(new DataPoint(i, 2.0*Math.Sin(rng) + Math.Sin(rng/4.5)));
+                series.Points.Add(new(i, 2.0 * Math.Sin(rng) + Math.Sin(rng / 4.5)));
             }
-            series.BorderWidth = 3;
             return series;
         }
     }

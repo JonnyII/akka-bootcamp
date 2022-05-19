@@ -28,36 +28,37 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            this.sysChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.button1 = new System.Windows.Forms.Button();
+            this.sysChart = new DevExpress.XtraCharts.ChartControl();
             ((System.ComponentModel.ISupportInitialize)(this.sysChart)).BeginInit();
             this.SuspendLayout();
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(702, 472);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 0;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // sysChart
             // 
-            chartArea1.Name = "ChartArea1";
-            this.sysChart.ChartAreas.Add(chartArea1);
-            this.sysChart.Dock = System.Windows.Forms.DockStyle.Fill;
-            legend1.Name = "Legend1";
-            this.sysChart.Legends.Add(legend1);
-            this.sysChart.Location = new System.Drawing.Point(0, 0);
+            this.sysChart.Location = new System.Drawing.Point(12, 12);
             this.sysChart.Name = "sysChart";
-            series1.ChartArea = "ChartArea1";
-            series1.Legend = "Legend1";
-            series1.Name = "Series1";
-            this.sysChart.Series.Add(series1);
-            this.sysChart.Size = new System.Drawing.Size(684, 446);
-            this.sysChart.TabIndex = 0;
-            this.sysChart.Text = "sysChart";
+            this.sysChart.SeriesSerializable = new DevExpress.XtraCharts.Series[0];
+            this.sysChart.Size = new System.Drawing.Size(684, 491);
+            this.sysChart.TabIndex = 1;
             // 
             // Main
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(684, 446);
+            this.ClientSize = new System.Drawing.Size(798, 515);
             this.Controls.Add(this.sysChart);
+            this.Controls.Add(this.button1);
+            this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.Name = "Main";
             this.Text = "System Metrics";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_FormClosing);
@@ -68,8 +69,9 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.DataVisualization.Charting.Chart sysChart;
+        
+        private System.Windows.Forms.Button button1;
+        private DevExpress.XtraCharts.ChartControl sysChart;
     }
 }
 

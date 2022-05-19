@@ -1,47 +1,50 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Forms.DataVisualization.Charting;
+
 using Akka.Actor;
+
+using DevExpress.XtraCharts;
 
 namespace ChartApp.Actors
 {
-    public class ChartingActor : UntypedActor
+    public class ChartingActor : ReceiveActor
     {
+        public ChartControl Chart { get; }
+
         #region Messages
 
-        public class InitializeChart
-        {
-            public InitializeChart(Dictionary<string, Series> initialSeries)
-            {
-                InitialSeries = initialSeries;
-            }
+        public record InitializeChart(Dictionary<string, Series> InitialSeries);
 
-            public Dictionary<string, Series> InitialSeries { get; private set; }
-        }
+        public record AddSeries(Series Series);
 
         #endregion
 
-        private readonly Chart _chart;
+        private readonly ChartControl _chart;
         private Dictionary<string, Series> _seriesIndex;
 
-        public ChartingActor(Chart chart) : this(chart, new Dictionary<string, Series>())
+        public ChartingActor(ChartControl chart) : this(chart, new())
         {
+            Chart = chart;
         }
 
-        public ChartingActor(Chart chart, Dictionary<string, Series> seriesIndex)
+        public ChartingActor(ChartControl chart, Dictionary<string, Series> seriesIndex)
         {
             _chart = chart;
             _seriesIndex = seriesIndex;
+
+            Receive<InitializeChart>(HandleInitialize);
+            Receive<AddSeries>(HandleAddSeries);
         }
 
-        protected override void OnReceive(object message)
+        private void HandleAddSeries(AddSeries series)
         {
-            if (message is InitializeChart)
-            {
-                var ic = message as InitializeChart;
-                HandleInitialize(ic);
-            }
+            if (
+                    string.IsNullOrEmpty(series.Series.Name)
+                    || _seriesIndex.ContainsKey(series.Series.Name))
+                return;
+
+            _seriesIndex.Add(series.Series.Name, series.Series);
+            _chart.Series.Add(series.Series);
         }
 
         #region Individual Message Type Handlers
@@ -55,17 +58,17 @@ namespace ChartApp.Actors
             }
 
             //delete any existing series
-            _chart.Series.Clear();
+            _chart.Series?.Clear();
 
             //attempt to render the initial chart
-            if (_seriesIndex.Any())
+            if (!_seriesIndex.Any())
+                return;
+
+            foreach (var (name, series) in _seriesIndex)
             {
-                foreach (var series in _seriesIndex)
-                {
-                    //force both the chart and the internal index to use the same names
-                    series.Value.Name = series.Key;
-                    _chart.Series.Add(series.Value);
-                }
+                //force both the chart and the internal index to use the same names
+                series.Name = name;
+                _chart.Series?.Add(series);
             }
         }
 
